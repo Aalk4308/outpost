@@ -42,9 +42,7 @@ public class Player extends outpost.sim.Player {
 	//public movePair move(ArrayList<ArrayList<Pair>> king_outpostlist, int noutpost, Point[] grid) {
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
     	int numOutposts = king_outpostlist.get(id).size();
-    	
-    	System.out.printf("num: %d\n", numOutposts);
-    	
+    	    	
     	double angle = 90 / (numOutposts + 1);
     	double sideLength = Math.min(65, Math.sqrt(Math.pow(2*r*numOutposts * 0.7,2) / 2));
     	
