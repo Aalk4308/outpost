@@ -44,15 +44,14 @@ public class Player extends outpost.sim.Player {
     	return del;
     }
     
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin){
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
     	if (!isInitialized) {
-    		// TODO: Replace with the real r when passed from the simulator
-    		double r = 5;
-    		board = new Board(gridin, r);
+    		board = new Board(id, gridin, r);
     		isInitialized = true;
     	}
-    	
+
     	board.update(king_outpostlist);
+    	// board.dump(3);
     	
     	counter = counter+1;
     	if (counter % 10 == 0) {
