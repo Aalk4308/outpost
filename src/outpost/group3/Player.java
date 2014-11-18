@@ -40,9 +40,8 @@ public class Player extends outpost.sim.Player {
     }
     
 	//public movePair move(ArrayList<ArrayList<Pair>> king_outpostlist, int noutpost, Point[] grid) {
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin){
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
     	int numOutposts = king_outpostlist.get(id).size();
-    	double r = 5;
     	
     	System.out.printf("num: %d\n", numOutposts);
     	
