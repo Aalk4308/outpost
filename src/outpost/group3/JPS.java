@@ -13,6 +13,7 @@ public class JPS {
 		boolean closed;
 		float g;
 		float f;
+		Node parent;
 		
 		Node (int x, int y, boolean allowed) {
 			this.x = x;
@@ -22,6 +23,7 @@ public class JPS {
 			this.closed = false;
 			this.g = 0;
 			this.f = 0;
+			this.parent = null;
 		}	
 	}
 	
@@ -77,7 +79,101 @@ public class JPS {
 		return new ArrayList<Loc>();
 	}
 	
-	private void identifySuccessors(Node node) {
+	private ArrayList<Loc> orthogonalNodes(Node node) {
+		ArrayList<Loc> locs = new ArrayList<Loc>();
 		
+		if (node.x > 0)
+			locs.add(new Loc(node.x - 1, node.y));
+		
+		if (node.y > 0)
+			locs.add(new Loc(node.x, node.y - 1));
+		
+		if (node.x < width - 1)
+			locs.add(new Loc(node.x + 1, node.y));
+		
+		if (node.y < height - 1)
+			locs.add(new Loc(node.x, node.y + 1));
+		
+		return locs;
+	}
+	
+	private ArrayList<Loc> findNeighbors(Node node) {
+		if (node.parent != null) {
+			ArrayList<Loc> neighbors = new ArrayList<Loc>();			
+			
+			int dx = (node.x - node.parent.x) / Math.max(Math.abs(node.x - node.parent.x), 1);
+			int dy = (node.y - node.parent.y) / Math.max(Math.abs(node.y - node.parent.y), 1);
+			
+			if (dx != 0) {
+				if (grid[node.x][node.y - 1].allowed)
+					neighbors.add(new Loc(node.x, node.y - 1));
+				
+				if (grid[node.x][node.y + 1].allowed)
+					neighbors.add(new Loc(node.x, node.y + 1));
+				
+				if (grid[node.x + dx][node.y].allowed)
+					neighbors.add(new Loc(node.x + dx, node.y));
+			} else if (dy != 0) {
+				if (grid[node.x - 1][node.y].allowed)
+					neighbors.add(new Loc(node.x - 1, node.y));
+				
+				if (grid[node.x + 1][node.y].allowed)
+					neighbors.add(new Loc(node.x + 1, node.y));
+				
+				if (grid[node.x][node.y + dy].allowed)
+					neighbors.add(new Loc(node.x, node.y + dy));
+			}
+			
+			return neighbors;
+		} else {
+			return orthogonalNodes(node);
+		}
+	}
+	
+	private Loc jump(int x, int y, int px, int py) {
+		return new Loc();
+	}
+	
+	private void identifySuccessors(Node node) {
+        ArrayList<Loc> neighbors = findNeighbors(node);
+        
+        for (Loc neighbor : neighbors) {
+        	Loc jumpPoint = jump(neighbor.x, neighbor.y, node.x, node.y);
+        	
+        	
+        }
+        
+        /*for(i = 0, l = neighbors.length; i < l; ++i) {
+            neighbor = neighbors[i];
+            jumpPoint = this._jump(neighbor[0], neighbor[1], x, y);
+            if (jumpPoint) {
+
+                jx = jumpPoint[0];
+                jy = jumpPoint[1];
+                jumpNode = grid.getNodeAt(jx, jy);
+
+                if (jumpNode.closed) {
+                    continue;
+                }
+
+                // include distance, as parent may not be immediately adjacent:
+                d = Heuristic.octile(abs(jx - x), abs(jy - y));
+                ng = node.g + d; // next `g` value
+
+                if (!jumpNode.opened || ng < jumpNode.g) {
+                    jumpNode.g = ng;
+                    jumpNode.h = jumpNode.h || heuristic(abs(jx - endX), abs(jy - endY));
+                    jumpNode.f = jumpNode.g + jumpNode.h;
+                    jumpNode.parent = node;
+
+                    if (!jumpNode.opened) {
+                        openList.push(jumpNode);
+                        jumpNode.opened = true;
+                    } else {
+                        openList.updateItem(jumpNode);
+                    }
+                }
+            }
+        }*/
 	}
 }
