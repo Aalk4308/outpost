@@ -87,8 +87,6 @@ public class Player extends outpost.sim.Player {
 	    			}    				
     			}
     		}
-    		
-    		System.out.printf("%d at (%d %d) wants (%d %d)\n", outpostId, xCurrent, yCurrent, xTarget, yTarget);
     	}
     	
     	counter = counter+1;
