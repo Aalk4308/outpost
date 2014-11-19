@@ -40,7 +40,60 @@ public class Player extends outpost.sim.Player {
     }
     
 	//public movePair move(ArrayList<ArrayList<Pair>> king_outpostlist, int noutpost, Point[] grid) {
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin){
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
+    	int numOutposts = king_outpostlist.get(id).size();
+    	    	
+    	double angle = 90 / (numOutposts + 1);
+    	double sideLength = Math.min(65, Math.sqrt(Math.pow(2*r*numOutposts * 0.7,2) / 2));
+    	
+    	
+    	ArrayList<movePair> moves = new ArrayList<movePair>();
+    	
+    	for (int outpostId = 0; outpostId < numOutposts; outpostId++) {
+    		int xTarget = (int) Math.round((outpostId + 1) * (sideLength / (numOutposts + 1)));
+    		int yTarget = (int) Math.round((numOutposts - outpostId) * (sideLength / (numOutposts + 1)));
+    		
+    		// Transform depending on where we are on the board
+    		if (id == 1) {
+    			xTarget = size - xTarget - 1;
+    		} else if (id == 2) {
+    			xTarget = size - xTarget - 1;
+    			yTarget = size - yTarget - 1;
+    		} else if (id == 3) {
+    			yTarget = size - yTarget - 1;
+    		}
+    		
+    		int xCurrent = king_outpostlist.get(id).get(outpostId).x;
+    		int yCurrent = king_outpostlist.get(id).get(outpostId).y;
+    		
+    		if (xCurrent == xTarget && yCurrent == yTarget) {
+    			moves.add(new movePair(outpostId, new Pair(xCurrent, yCurrent)));
+    		} else if (xCurrent == xTarget && yCurrent != yTarget) {
+    			moves.add(new movePair(outpostId, new Pair(xCurrent, yCurrent + (int) Math.signum(yTarget - yCurrent))));
+    		} else if (xCurrent != xTarget && yCurrent == yTarget) {
+    			moves.add(new movePair(outpostId, new Pair(xCurrent + (int) Math.signum(xTarget - xCurrent), yCurrent)));
+    		} else {
+    			if ((Math.abs(yTarget - yCurrent) / Math.abs(xTarget - xCurrent)) > 0) {
+	    			if (counter % ((int) (Math.abs(yTarget - yCurrent) / Math.abs(xTarget - xCurrent))) == 0) {
+	        			moves.add(new movePair(outpostId, new Pair(xCurrent + (int) Math.signum(xTarget - xCurrent), yCurrent)));    				
+	    			} else {
+	        			moves.add(new movePair(outpostId, new Pair(xCurrent, yCurrent + (int) Math.signum(yTarget - yCurrent))));
+	    			}
+    			} else {
+	    			if (counter % ((int) (Math.abs(xTarget - xCurrent) / Math.abs(yTarget - yCurrent))) == 0) {
+	        			moves.add(new movePair(outpostId, new Pair(xCurrent + (int) Math.signum(xTarget - xCurrent), yCurrent)));    				
+	    			} else {
+	        			moves.add(new movePair(outpostId, new Pair(xCurrent, yCurrent + (int) Math.signum(yTarget - yCurrent))));
+	    			}    				
+    			}
+    		}
+    	}
+    	
+    	counter = counter+1;
+    	
+    	return moves;
+    	
+    	/*
     	counter = counter+1;
     	if (counter % 10 == 0) {
     		for (int i=0; i<100; i++) {
@@ -79,11 +132,13 @@ public class Player extends outpost.sim.Player {
     		theta[j] = random.nextInt(positions.size());
     		}
     	}
+    	*/
     	/*if (prarr.size()>noutpost) {
 			movePair mpr = new movePair(prarr.size()-1, new Pair(0,0));
 			nextlist.add(mpr);
 			//mpr.printmovePair();
 		}*/
+    	/*
     	//else {
     		ArrayList<Pair> positions = new ArrayList<Pair>();
     		positions = surround(prarr.get(prarr.size()-1));
@@ -112,7 +167,7 @@ public class Player extends outpost.sim.Player {
     	
     	
     	return nextlist;
-    
+    	 */
     }
     
     
