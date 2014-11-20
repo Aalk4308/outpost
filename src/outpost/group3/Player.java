@@ -7,6 +7,7 @@ import outpost.sim.Point;
 import outpost.sim.movePair;
 
 import outpost.group3.Board;
+import outpost.group3.JPS;
 
 public class Player extends outpost.sim.Player {
 	 static int size =100;
@@ -52,6 +53,13 @@ public class Player extends outpost.sim.Player {
 
     	board.update(king_outpostlist);
     	//board.dump(3);
+    	
+    	boolean rawGrid[][] = board.getGrid();
+    	JPS jps = new JPS(rawGrid, size, size);
+    	
+    	ArrayList<Loc> path = jps.findPath(new Loc(0,0), new Loc(37,43));
+    	System.out.println(path);
+    	board.dump(new Board.DumpInfo(Board.DumpInfo.DumpType.TYPE, path));
     	
     	counter = counter+1;
     	if (counter % 10 == 0) {

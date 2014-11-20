@@ -153,27 +153,56 @@ public class Board {
 		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
 	}
 	
+	public boolean[][] getGrid() {
+		boolean grid[][] = new boolean[dimension][dimension];
+		
+		for (int x = 0; x < dimension; x++)
+			for (int y = 0; y < dimension; y++)
+				grid[x][y] = cells[x][y].isLand();
+		
+		return grid;
+	}
+	
+	
+	public static class DumpInfo {
+		public static enum DumpType { TYPE, STATE, OWNER };
+		
+		private DumpType dumpType;
+		ArrayList<Loc> path;
+		
+		DumpInfo(DumpType dumpType) {
+			this.dumpType = dumpType;
+		}
+		
+		DumpInfo(DumpType dumpType, ArrayList<Loc> path) {
+			this.dumpType = dumpType;
+			this.path = path;
+		}
+	}
+	
 	/* Debug function to print board to console.  Pass 1 for cellType, pass 2 for cellState, pass 3 for cellOwner */
-    public void dump(int dumpType) {
+    public void dump(DumpInfo dumpInfo) {
 		String s = new String();
     	for (int y = 0; y < dimension; y++) {
 			for (int x = 0; x < dimension; x++) {
 				if (cells[x][y].hasOutpost()) {
 					s = s + "O";
+				} else if (dumpInfo.path != null && dumpInfo.path.contains(new Loc(x, y))) {
+					s = s + "#";
 				} else {
-					if (dumpType == 1) {
+					if (dumpInfo.dumpType == DumpInfo.DumpType.TYPE) {
 	 					if (cells[x][y].isLand())
-	 						s = s + "@";
+	 						s = s + ".";
 	 					else if (cells[x][y].isWater())
 	 						s = s + "W";
-					} else if (dumpType == 2) {
+					} else if (dumpInfo.dumpType == DumpInfo.DumpType.STATE) {
 	 					if (cells[x][y].isOwned())
 	 						s = s + "+";
 	 					else if (cells[x][y].isDisputed())
 	 						s = s + "X";
 	 					else
 	 						s = s + "-";
-	 				} else if (dumpType == 3) {
+	 				} else if (dumpInfo.dumpType == DumpInfo.DumpType.OWNER) {
 	 					if (cells[x][y].isOwned())
 	 						s = s + cells[x][y].getOwnerId();
 	 					else
