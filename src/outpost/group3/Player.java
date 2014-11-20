@@ -6,12 +6,17 @@ import outpost.sim.Pair;
 import outpost.sim.Point;
 import outpost.sim.movePair;
 
+import outpost.group3.Board;
+
 public class Player extends outpost.sim.Player {
 	 static int size =100;
 	static Point[] grid = new Point[size*size];
 	static Random random = new Random();
 	static int[] theta = new int[100];
 	static int counter = 0;
+	
+	private boolean isInitialized = false;
+	private Board board;
 	
     public Player(int id_in) {
 		super(id_in);
@@ -39,8 +44,15 @@ public class Player extends outpost.sim.Player {
     	return del;
     }
     
-	//public movePair move(ArrayList<ArrayList<Pair>> king_outpostlist, int noutpost, Point[] grid) {
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
+    	if (!isInitialized) {
+    		board = new Board(id, gridin, r, L, W);
+    		isInitialized = true;
+    	}
+
+    	board.update(king_outpostlist);
+    	// board.dump(3);
+
     	counter = counter+1;
     	if (counter % 10 == 0) {
     		for (int i=0; i<100; i++) {
