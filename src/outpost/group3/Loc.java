@@ -19,6 +19,22 @@ public class Loc {
 		y = l.y;
 	}
 	
+	static public double mDistance(int x1, int y1, int x2, int y2) {
+		return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+	}
+	
+	static public double mDistance(int x, int y, Loc l) {
+		return mDistance(x, y, l.x, l.y);
+	}
+	
+	static public double mDistance(Loc l, int x, int y) {
+		return mDistance(l.x, l.y, x, y);
+	}
+	
+	static public double mDistance(Loc l1, Loc l2) {
+		return mDistance(l1.x, l1.y, l2.x, l2.y);
+	}
+	
 	static public double distanceSquared(int x1, int y1, int x2, int y2) {
     	return (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
     }
