@@ -46,7 +46,7 @@ public class Player extends outpost.sim.Player {
     
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
     	if (!isInitialized) {
-    		board = new Board(id, gridin, r);
+    		board = new Board(id, gridin, r, L, W);
     		isInitialized = true;
     	}
 

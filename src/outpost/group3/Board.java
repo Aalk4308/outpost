@@ -25,6 +25,8 @@ public class Board {
 	
 	private int playerId;
 	private double r;
+	private double L;
+	private double W;
 	
 	private Cell[][] cells;
 	private ArrayList<ArrayList<Loc>> outposts;
@@ -39,12 +41,14 @@ public class Board {
 			loc.y = dimension - loc.y - 1;
 	}
 		
-	Board(int playerId, Point[] simGrid, double r) {
+	Board(int playerId, Point[] simGrid, double r, double L, double W) {
 		if (simGrid.length != dimension*dimension)
 			System.err.println("Attempting to create board with wrong number of Points");
 		
 		this.playerId = playerId;
 		this.r = r;
+		this.L = L;
+		this.W = W;
 		cells = new Cell[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
@@ -146,7 +150,7 @@ public class Board {
 	}
 	
 	public int numOutpostsSupportableFor(int id) {
-		return 1;
+		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
 	}
 	
 	/* Debug function to print board to console.  Pass 1 for cellType, pass 2 for cellState, pass 3 for cellOwner */
