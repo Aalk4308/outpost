@@ -97,7 +97,7 @@ public class Board {
 				
 				for (int id = 0; id < Consts.numPlayers; id++) {
 					for (Loc loc : outposts.get(id)) {
-						double d = Loc.distance(x, y, loc);
+						double d = Loc.mDistance(x, y, loc);
 						if (d < r && d == cell.getOwnerDistance() && id != cell.getOwnerId()) {
 							cell.setDisputed();
 						} else if (d < r && d < cell.getOwnerDistance()) {
