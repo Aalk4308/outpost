@@ -4,6 +4,11 @@ import java.util.*;
 
 import outpost.group3.Loc;
 
+/* Implementation of jump point search as described in http://users.cecs.anu.edu.au/~dharabor/data/papers/harabor-grastien-aaai11.pdf
+ * Ported from https://github.com/qiao/PathFinding.js/
+ * All credit goes to the original authors
+ */
+
 public class JPS {	
 	private class Node {
 		int x;
@@ -72,13 +77,88 @@ public class JPS {
 			node.closed = true;
 			
 			if (node.x == endNode.x && node.y == endNode.y) {
-				return new ArrayList<Loc>();
+				return expand(backtrace(endNode));
 			}
 			
 			identifySuccessors(node);
 		}
 		
 		return new ArrayList<Loc>();
+	}
+	
+	private ArrayList<Loc> backtrace(Node node) {
+		ArrayList<Loc> locs = new ArrayList<Loc>();
+		locs.add(new Loc(node.x, node.y));
+		
+		while (node.parent != null) {
+			node = node.parent;
+			locs.add(new Loc(node.x, node.y));
+		}
+		
+		Collections.reverse(locs);
+		return locs;
+	}
+	
+	private ArrayList<Loc> interpolate(int x0, int y0, int x1, int y1) {
+		ArrayList<Loc> line = new ArrayList<Loc>();
+		
+		int dx = Math.abs(x1 - x0);
+		int dy = Math.abs(y1 - y0);
+		
+		int sx = (x0 < x1) ? 1 : -1;
+		int sy = (y0 < y1) ? 1 : -1;
+		
+		int err = dx - dy;
+		
+		while (true) {
+			line.add(new Loc(x0, y0));
+			
+			if (x0 == x1 && y0 == y1)
+				break;
+			
+			int err2 = 2 * err;
+			
+			if (err2 > -dy) {
+				err = err - dy;
+				x0 = x0 + sx;
+			}
+			
+			if (err2 < dx) {
+				err = err + dx;
+				y0 = y0 + sy;
+			}
+		}
+		
+		return line;
+	}
+	
+	private ArrayList<Loc> expand(ArrayList<Loc> path) {
+		ArrayList<Loc> expanded = new ArrayList<Loc>();
+
+		if (path.size() < 2)
+		    return expanded;
+		
+		for (int i = 0; i < path.size() - 1; i++) {
+			Loc l0 = path.get(i);
+			Loc l1 = path.get(i + 1);
+		
+			ArrayList<Loc> interpolated = interpolate(l0.x, l0.y, l1.x, l1.y);
+			
+			for (int j = 0; j < interpolated.size() - 1; j++)
+		        expanded.add(interpolated.get(j));
+		}
+		
+		expanded.add(path.get(path.size() - 1));
+		
+		return expanded;
+	}
+	
+	private boolean isInside(int x, int y) {
+		return (x >= 0 && x < width) && (y >= 0 && y < height);
+	}
+	
+	private boolean isAllowed(int x, int y) {
+		return isInside(x, y) && grid[x][y].allowed;
 	}
 	
 	private ArrayList<Loc> orthogonalNodes(Node node) {
@@ -103,27 +183,30 @@ public class JPS {
 		if (node.parent != null) {
 			ArrayList<Loc> neighbors = new ArrayList<Loc>();			
 			
-			int dx = (node.x - node.parent.x) / Math.max(Math.abs(node.x - node.parent.x), 1);
-			int dy = (node.y - node.parent.y) / Math.max(Math.abs(node.y - node.parent.y), 1);
+			int x = node.x;
+			int y = node.y;
+			
+			int dx = (x - node.parent.x) / Math.max(Math.abs(x - node.parent.x), 1);
+			int dy = (y - node.parent.y) / Math.max(Math.abs(y - node.parent.y), 1);
 			
 			if (dx != 0) {
-				if (grid[node.x][node.y - 1].allowed)
-					neighbors.add(new Loc(node.x, node.y - 1));
+				if (isAllowed(x, y - 1))
+					neighbors.add(new Loc(x, y - 1));
 				
-				if (grid[node.x][node.y + 1].allowed)
-					neighbors.add(new Loc(node.x, node.y + 1));
+				if (isAllowed(x, y + 1))
+					neighbors.add(new Loc(x, y + 1));
 				
-				if (grid[node.x + dx][node.y].allowed)
-					neighbors.add(new Loc(node.x + dx, node.y));
+				if (isAllowed(x + dx, y))
+					neighbors.add(new Loc(x + dx, y));
 			} else if (dy != 0) {
-				if (grid[node.x - 1][node.y].allowed)
-					neighbors.add(new Loc(node.x - 1, node.y));
+				if (isAllowed(x - 1, y))
+					neighbors.add(new Loc(x - 1, y));
 				
-				if (grid[node.x + 1][node.y].allowed)
-					neighbors.add(new Loc(node.x + 1, node.y));
+				if (isAllowed(x + 1, y))
+					neighbors.add(new Loc(x + 1, y));
 				
-				if (grid[node.x][node.y + dy].allowed)
-					neighbors.add(new Loc(node.x, node.y + dy));
+				if (isAllowed(x, y + dy))
+					neighbors.add(new Loc(x, y + dy));
 			}
 			
 			return neighbors;
@@ -136,19 +219,19 @@ public class JPS {
 		int dx = x - px;
 		int dy = y - py;
 		
-		if (!grid[x][y].allowed)
+		if (!isAllowed(x, y))
 			return null;
 		
 		if (x == endNode.x && y == endNode.y)
 			return new Loc(x, y);
 		
 		if (dx != 0) {
-			if ((grid[x][y - 1].allowed && !grid[x - dx][y - 1].allowed) ||
-				(grid[x][y + 1].allowed && !grid[x - dx][y + 1].allowed))
+			if ((isAllowed(x, y - 1) && !isAllowed(x - dx, y - 1)) ||
+				(isAllowed(x, y + 1) && !isAllowed(x - dx,y + 1)))
 					return new Loc (x, y);
 		} else if (dy != 0) {
-			if ((grid[x - 1][y].allowed && !grid[x - 1][y - dy].allowed) ||
-				(grid[x + 1][y].allowed && !grid[x + 1][y - dy].allowed))
+			if ((isAllowed(x - 1, y) && !isAllowed(x - 1, y - dy)) ||
+				(isAllowed(x + 1, y) && !isAllowed(x + 1, y - dy)))
 					return new Loc (x, y);
 	        
 			if (jump(x + 1, y, x, y) != null || jump(x - 1, y, x, y) != null)
@@ -195,38 +278,5 @@ public class JPS {
         		}
         	}
         }
-        
-        /*for(i = 0, l = neighbors.length; i < l; ++i) {
-            neighbor = neighbors[i];
-            jumpPoint = this._jump(neighbor[0], neighbor[1], x, y);
-            if (jumpPoint) {
-
-                jx = jumpPoint[0];
-                jy = jumpPoint[1];
-                jumpNode = grid.getNodeAt(jx, jy);
-
-                if (jumpNode.closed) {
-                    continue;
-                }
-
-                // include distance, as parent may not be immediately adjacent:
-                d = Heuristic.octile(abs(jx - x), abs(jy - y));
-                ng = node.g + d; // next `g` value
-
-                if (!jumpNode.opened || ng < jumpNode.g) {
-                    jumpNode.g = ng;
-                    jumpNode.h = jumpNode.h || heuristic(abs(jx - endX), abs(jy - endY));
-                    jumpNode.f = jumpNode.g + jumpNode.h;
-                    jumpNode.parent = node;
-
-                    if (!jumpNode.opened) {
-                        openList.push(jumpNode);
-                        jumpNode.opened = true;
-                    } else {
-                        openList.updateItem(jumpNode);
-                    }
-                }
-            }
-        }*/
 	}
 }
