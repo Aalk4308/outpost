@@ -947,10 +947,16 @@ public class Outpost
 				pr.y = Integer.parseInt(item2.get(1));
 				list.add(pr);
 				counter = counter +1;
-				grid[pr.x*size+pr.y].water = true;
+				/*grid[pr.x*size+pr.y].water = true;
 				grid[(size-pr.y)*size+pr.x].water = true;
 				grid[(100-pr.x)*size+(100-pr.y)].water = true;
-				grid[pr.y*size+100-pr.x].water = true;
+				grid[pr.y*size+100-pr.x].water = true;*/
+				
+				grid[pr.x*size+pr.y].water = true;
+				grid[(size-pr.y-1)*size+pr.x].water = true;
+				grid[(size-pr.x-1)*size+(size-pr.y-1)].water = true;
+				grid[pr.y*size+size-pr.x-1].water = true;
+				
 				//grid[(100-pr.x)*size+pr.y].water = true;
 				//grid[(100-pr.x)*size+100-pr.y].water = true;
 			}

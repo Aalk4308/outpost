@@ -51,8 +51,8 @@ public class Player extends outpost.sim.Player {
     	}
 
     	board.update(king_outpostlist);
-    	//board.dump(3);
-    	
+    	// board.dump(3);
+
     	counter = counter+1;
     	if (counter % 10 == 0) {
     		for (int i=0; i<100; i++) {
