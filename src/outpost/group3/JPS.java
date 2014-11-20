@@ -11,8 +11,9 @@ public class JPS {
 		boolean allowed;
 		boolean opened;
 		boolean closed;
-		float g;
-		float f;
+		int g;
+		int f;
+		int h;
 		Node parent;
 		
 		Node (int x, int y, boolean allowed) {
@@ -23,6 +24,7 @@ public class JPS {
 			this.closed = false;
 			this.g = 0;
 			this.f = 0;
+			this.h = 0;
 			this.parent = null;
 		}	
 	}
@@ -131,16 +133,67 @@ public class JPS {
 	}
 	
 	private Loc jump(int x, int y, int px, int py) {
-		return new Loc();
+		int dx = x - px;
+		int dy = y - py;
+		
+		if (!grid[x][y].allowed)
+			return null;
+		
+		if (x == endNode.x && y == endNode.y)
+			return new Loc(x, y);
+		
+		if (dx != 0) {
+			if ((grid[x][y - 1].allowed && !grid[x - dx][y - 1].allowed) ||
+				(grid[x][y + 1].allowed && !grid[x - dx][y + 1].allowed))
+					return new Loc (x, y);
+		} else if (dy != 0) {
+			if ((grid[x - 1][y].allowed && !grid[x - 1][y - dy].allowed) ||
+				(grid[x + 1][y].allowed && !grid[x + 1][y - dy].allowed))
+					return new Loc (x, y);
+	        
+			if (jump(x + 1, y, x, y) != null || jump(x - 1, y, x, y) != null)
+				return new Loc (x, y);
+		}
+		
+		return jump(x + dx, y + dy, x, y);
 	}
 	
 	private void identifySuccessors(Node node) {
         ArrayList<Loc> neighbors = findNeighbors(node);
         
+        int x = node.x;
+        int y = node.y;
+        
         for (Loc neighbor : neighbors) {
-        	Loc jumpPoint = jump(neighbor.x, neighbor.y, node.x, node.y);
-        	
-        	
+        	Loc jumpPoint = jump(neighbor.x, neighbor.y, x, y);
+        	if (jumpPoint != null) {
+        		int jx = jumpPoint.x;
+        		int jy = jumpPoint.y;
+        		
+        		Node jumpNode = grid[jx][jy];
+        		
+        		if (jumpNode.closed)
+        			continue;
+        		
+        		// Manhattan distance
+        		int d = Math.abs(jx - x) + Math.abs(jy - y);
+        		int ng = node.g + d;
+        		
+        		if (!jumpNode.opened || ng < jumpNode.g) {
+        			jumpNode.g = ng;
+        			jumpNode.h = jumpNode.h == 0 ? jumpNode.h : (Math.abs(jx - x) + Math.abs(jy - y));
+        			jumpNode.f = jumpNode.g - jumpNode.h;
+        			jumpNode.parent = node;
+        			
+        			if (!jumpNode.opened) {
+        				openList.add(jumpNode);
+        				jumpNode.opened = true;
+        			} else {
+        				openList.remove(jumpNode);
+        				openList.add(jumpNode);
+        			}
+        		}
+        	}
         }
         
         /*for(i = 0, l = neighbors.length; i < l; ++i) {
