@@ -70,4 +70,18 @@ public class Loc {
     static public boolean equals(Loc l1, Loc l2) {
     	return l1.x == l2.x && l1.y == l2.y;
     }
+    
+    @Override
+    public String toString() {
+    	return "(" + x + ", " + y + ")";
+    }
+    
+    public boolean equals(Object obj) {
+    	if (!(obj instanceof Loc))
+    		return false;
+    	
+    	Loc l = (Loc) obj;
+    	
+    	return x == l.x && y == l.y;
+    }
 }
