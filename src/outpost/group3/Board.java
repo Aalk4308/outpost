@@ -142,6 +142,10 @@ public class Board {
 		return jps.findPath(start, end);
 	}
 	
+	public ArrayList<Loc> ourOutposts() {
+		return outposts.get(playerId);
+	}
+	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
 	}
