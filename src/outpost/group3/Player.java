@@ -37,7 +37,7 @@ public class Player extends outpost.sim.Player {
       board.update(simOutpostList);
 
       /* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
-      Strategy strategy = new DiagonalStrategy();
+      Strategy strategy = new ConsumerStrategy(r);
       ArrayList<Loc> targets = strategy.run(board);
 
       ArrayList<movePair> moves = new ArrayList<movePair>();
