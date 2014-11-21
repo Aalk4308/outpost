@@ -5,6 +5,8 @@ import java.util.*;
 import outpost.group3.Consts;
 import outpost.group3.Cell;
 import outpost.group3.Loc;
+import outpost.group3.JPS;
+
 import outpost.sim.Pair;
 import outpost.sim.Point;
 
@@ -29,8 +31,11 @@ public class Board {
 	private double W;
 	
 	private Cell[][] cells;
+	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
 	private ArrayList<PlayerSummary> playerSummaries;
+	
+	private JPS jps;
 	
 	/* Transforms a coordinate to/from the simulator and system where our player is always at (0,0) */ 
 	private void simFlip(Loc loc) {
@@ -50,6 +55,7 @@ public class Board {
 		this.L = L;
 		this.W = W;
 		cells = new Cell[dimension][dimension];
+		landGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
 		
@@ -58,12 +64,15 @@ public class Board {
 			Loc loc = new Loc(p.x, p.y);
 			simFlip(loc);
 			cells[loc.x][loc.y] = new Cell(p.water ? Cell.CellType.WATER : Cell.CellType.LAND);
+			landGrid[loc.x][loc.y] = !p.water;
 		}
-		
+	
 		for (int id = 0; id < Consts.numPlayers; id++) {
 			outposts.add(new ArrayList<Loc>());
 			playerSummaries.add(new PlayerSummary());
 		}
+		
+		jps = new JPS(landGrid, dimension, dimension);
 	}
 	
 	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
@@ -125,6 +134,14 @@ public class Board {
 		}
 	}
 	
+	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
+		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
+	}
+	
+	public ArrayList<Loc> findPath(Loc start, Loc end) {
+		return jps.findPath(start, end);
+	}
+	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
 	}
@@ -152,17 +169,6 @@ public class Board {
 	public int numOutpostsSupportableFor(int id) {
 		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
 	}
-	
-	public boolean[][] getGrid() {
-		boolean grid[][] = new boolean[dimension][dimension];
-		
-		for (int x = 0; x < dimension; x++)
-			for (int y = 0; y < dimension; y++)
-				grid[x][y] = cells[x][y].isLand();
-		
-		return grid;
-	}
-	
 	
 	public static class DumpInfo {
 		public static enum DumpType { TYPE, STATE, OWNER };
