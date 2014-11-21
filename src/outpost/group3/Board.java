@@ -5,6 +5,8 @@ import java.util.*;
 import outpost.group3.Consts;
 import outpost.group3.Cell;
 import outpost.group3.Loc;
+import outpost.group3.JPS;
+
 import outpost.sim.Pair;
 import outpost.sim.Point;
 
@@ -23,17 +25,20 @@ public class Board {
 		}
 	}
 	
-	private int playerId;
-	private double r;
-	private double L;
-	private double W;
+	public int playerId;
+	public double r;
+	public double L;
+	public double W;
 	
 	private Cell[][] cells;
+	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
 	private ArrayList<PlayerSummary> playerSummaries;
 	
+	private JPS jps;
+	
 	/* Transforms a coordinate to/from the simulator and system where our player is always at (0,0) */ 
-	private void simFlip(Loc loc) {
+	public void simFlip(Loc loc) {
 		if (playerId == 1 || playerId == 2)
 			loc.x = dimension - loc.x - 1;
 		
@@ -50,6 +55,7 @@ public class Board {
 		this.L = L;
 		this.W = W;
 		cells = new Cell[dimension][dimension];
+		landGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
 		
@@ -57,13 +63,22 @@ public class Board {
 			Point p = simGrid[i];
 			Loc loc = new Loc(p.x, p.y);
 			simFlip(loc);
-			cells[loc.x][loc.y] = new Cell(p.water ? Cell.CellType.WATER : Cell.CellType.LAND);
+			cells[loc.x][loc.y] = new Cell(loc.x, loc.y, p.water ? Cell.CellType.WATER : Cell.CellType.LAND);
+			landGrid[loc.x][loc.y] = !p.water;
 		}
-		
+	
 		for (int id = 0; id < Consts.numPlayers; id++) {
 			outposts.add(new ArrayList<Loc>());
 			playerSummaries.add(new PlayerSummary());
 		}
+		
+		for (int x = 0; x < dimension; x++) {
+			for (int y = 0; y < dimension; y++) {
+				cells[x][y].setNearestLand(findNearestLand(x, y));
+			}
+		}
+		
+		jps = new JPS(landGrid, dimension, dimension);
 	}
 	
 	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
@@ -125,6 +140,50 @@ public class Board {
 		}
 	}
 	
+	private Cell findNearestLand(int xStart, int yStart) {
+		for (int d = 0; d < dimension; d++) {
+			int x = xStart - d;
+			int y = yStart;
+			
+			for (int j = 0; j < 4; j++) {
+				for (int i = 0; i <= d; i ++) {
+					x += i * (j <= 1 ? 1 : -1);
+					y += i * (j == 2 || j == 3 ? 1 : -1);
+					
+					if (isInside(x, y) && cells[x][y].isLand())
+						return cells[x][y];
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public Cell getCell(int x, int y) {
+		return cells[x][y];
+	}
+	
+	public Cell getCell(Loc loc) {
+		return getCell(loc.x, loc.y);
+	}
+	
+	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
+		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
+	}
+	
+	public ArrayList<Loc> findPath(Loc start, Loc end) {
+		return jps.findPath(start, end);
+	}
+	
+	public Loc nearestLand(Loc loc) {
+		Cell c = cells[loc.x][loc.y].getNearestLand();
+		return new Loc(c.x, c.y);
+	}
+	
+	public ArrayList<Loc> ourOutposts() {
+		return outposts.get(playerId);
+	}
+	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
 	}
@@ -153,27 +212,45 @@ public class Board {
 		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
 	}
 	
+	public static class DumpInfo {
+		public static enum DumpType { TYPE, STATE, OWNER };
+		
+		private DumpType dumpType;
+		ArrayList<Loc> path;
+		
+		DumpInfo(DumpType dumpType) {
+			this.dumpType = dumpType;
+		}
+		
+		DumpInfo(DumpType dumpType, ArrayList<Loc> path) {
+			this.dumpType = dumpType;
+			this.path = path;
+		}
+	}
+	
 	/* Debug function to print board to console.  Pass 1 for cellType, pass 2 for cellState, pass 3 for cellOwner */
-    public void dump(int dumpType) {
+    public void dump(DumpInfo dumpInfo) {
 		String s = new String();
     	for (int y = 0; y < dimension; y++) {
 			for (int x = 0; x < dimension; x++) {
 				if (cells[x][y].hasOutpost()) {
 					s = s + "O";
+				} else if (dumpInfo.path != null && dumpInfo.path.contains(new Loc(x, y))) {
+					s = s + "#";
 				} else {
-					if (dumpType == 1) {
+					if (dumpInfo.dumpType == DumpInfo.DumpType.TYPE) {
 	 					if (cells[x][y].isLand())
-	 						s = s + "@";
+	 						s = s + ".";
 	 					else if (cells[x][y].isWater())
 	 						s = s + "W";
-					} else if (dumpType == 2) {
+					} else if (dumpInfo.dumpType == DumpInfo.DumpType.STATE) {
 	 					if (cells[x][y].isOwned())
 	 						s = s + "+";
 	 					else if (cells[x][y].isDisputed())
 	 						s = s + "X";
 	 					else
 	 						s = s + "-";
-	 				} else if (dumpType == 3) {
+	 				} else if (dumpInfo.dumpType == DumpInfo.DumpType.OWNER) {
 	 					if (cells[x][y].isOwned())
 	 						s = s + cells[x][y].getOwnerId();
 	 					else
@@ -188,4 +265,8 @@ public class Board {
     	
     	System.out.printf(s);
     }
+    
+	private boolean isInside(int x, int y) {
+		return (x >= 0 && x < dimension) && (y >= 0 && y < dimension);
+	}
 }

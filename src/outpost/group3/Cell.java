@@ -8,13 +8,19 @@ public class Cell {
 	public static enum CellType { LAND, WATER };
 	public static enum CellState { NEUTRAL, OWNED, DISPUTED };
 	
+	public int x;
+	public int y;
+	
 	private CellType cellType;
 	private CellState cellState;
 	private int cellOwnerId;					// -1 for NEUTRAL or DISPUTED cells
 	private double cellOwnerDistance;			// Double.MAX_VALUE for NEUTRAL or DISPUTED cells
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
+	private Cell nearestLand;
 	
-	Cell (CellType cellType) {
+	Cell (int x, int y, CellType cellType) {
+		this.x = x;
+		this.y = y;
 		this.cellType = cellType;
 		this.setNeutral();
 		this.numOutposts = new int[Consts.numPlayers];
@@ -82,6 +88,14 @@ public class Cell {
 		this.cellState = CellState.OWNED;
 		this.cellOwnerId = cellOwnerId;
 		this.cellOwnerDistance = distance;
+	}
+	
+	public Cell getNearestLand() {
+		return nearestLand;
+	}
+	
+	public void setNearestLand(Cell nearestLand) {
+		this.nearestLand = nearestLand;
 	}
 	
 	public boolean hasOutpost() {
