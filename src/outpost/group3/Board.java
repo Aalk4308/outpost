@@ -25,10 +25,10 @@ public class Board {
 		}
 	}
 	
-	private int playerId;
-	private double r;
-	private double L;
-	private double W;
+	public int playerId;
+	public double r;
+	public double L;
+	public double W;
 	
 	private Cell[][] cells;
 	private boolean landGrid[][];
@@ -38,7 +38,7 @@ public class Board {
 	private JPS jps;
 	
 	/* Transforms a coordinate to/from the simulator and system where our player is always at (0,0) */ 
-	private void simFlip(Loc loc) {
+	public void simFlip(Loc loc) {
 		if (playerId == 1 || playerId == 2)
 			loc.x = dimension - loc.x - 1;
 		
@@ -63,13 +63,19 @@ public class Board {
 			Point p = simGrid[i];
 			Loc loc = new Loc(p.x, p.y);
 			simFlip(loc);
-			cells[loc.x][loc.y] = new Cell(p.water ? Cell.CellType.WATER : Cell.CellType.LAND);
+			cells[loc.x][loc.y] = new Cell(loc.x, loc.y, p.water ? Cell.CellType.WATER : Cell.CellType.LAND);
 			landGrid[loc.x][loc.y] = !p.water;
 		}
 	
 		for (int id = 0; id < Consts.numPlayers; id++) {
 			outposts.add(new ArrayList<Loc>());
 			playerSummaries.add(new PlayerSummary());
+		}
+		
+		for (int x = 0; x < dimension; x++) {
+			for (int y = 0; y < dimension; y++) {
+				cells[x][y].setNearestLand(findNearestLand(x, y));
+			}
 		}
 		
 		jps = new JPS(landGrid, dimension, dimension);
@@ -134,12 +140,36 @@ public class Board {
 		}
 	}
 	
+	private Cell findNearestLand(int xStart, int yStart) {
+		for (int d = 0; d < dimension; d++) {
+			int x = xStart - d;
+			int y = yStart;
+			
+			for (int j = 0; j < 4; j++) {
+				for (int i = 0; i <= d; i ++) {
+					x += i * (j <= 1 ? 1 : -1);
+					y += i * (j == 2 || j == 3 ? 1 : -1);
+					
+					if (isInside(x, y) && cells[x][y].isLand())
+						return cells[x][y];
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
 		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
 	}
 	
 	public ArrayList<Loc> findPath(Loc start, Loc end) {
 		return jps.findPath(start, end);
+	}
+	
+	public Loc nearestLand(Loc loc) {
+		Cell c = cells[loc.x][loc.y].getNearestLand();
+		return new Loc(c.x, c.y);
 	}
 	
 	public ArrayList<Loc> ourOutposts() {
@@ -227,4 +257,8 @@ public class Board {
     	
     	System.out.printf(s);
     }
+    
+	private boolean isInside(int x, int y) {
+		return (x >= 0 && x < dimension) && (y >= 0 && y < dimension);
+	}
 }
