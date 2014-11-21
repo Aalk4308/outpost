@@ -45,13 +45,13 @@ public class Player extends outpost.sim.Player {
     	return del;
     }
     
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin, int r, int L, int W, int T){
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T){
     	if (!isInitialized) {
-    		board = new Board(id, gridin, r, L, W);
+    		board = new Board(id, simGrid, r, L, W);
     		isInitialized = true;
     	}
 
-    	board.update(king_outpostlist);
+    	board.update(simOutpostList);
 
     	//board.dump(3);
     	
@@ -70,11 +70,11 @@ public class Player extends outpost.sim.Player {
     	}
     	ArrayList<movePair> nextlist = new ArrayList<movePair>();
     	//System.out.printf("Player %d\n", this.id);
-    	for (int i=0; i<gridin.length; i++) {
-    		grid[i]=new Point(gridin[i]);
+    	for (int i=0; i<simGrid.length; i++) {
+    		grid[i]=new Point(simGrid[i]);
     	}
     	ArrayList<Pair> prarr = new ArrayList<Pair>();
-    	prarr = king_outpostlist.get(this.id);
+    	prarr = simOutpostList.get(this.id);
     	for (int j =0; j<prarr.size()-1; j++) {
     		ArrayList<Pair> positions = new ArrayList<Pair>();
     		positions = surround(prarr.get(j));
