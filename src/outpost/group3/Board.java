@@ -183,6 +183,10 @@ public class Board {
 	public ArrayList<Loc> ourOutposts() {
 		return outposts.get(playerId);
 	}
+
+        public ArrayList<Loc> theirOutposts(int id){
+                return outposts.get(id);
+        }
 	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
