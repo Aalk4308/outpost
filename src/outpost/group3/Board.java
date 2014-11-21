@@ -159,6 +159,14 @@ public class Board {
 		return null;
 	}
 	
+	public Cell getCell(int x, int y) {
+		return cells[x][y];
+	}
+	
+	public Cell getCell(Loc loc) {
+		return getCell(loc.x, loc.y);
+	}
+	
 	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
 		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
 	}
