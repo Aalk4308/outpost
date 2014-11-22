@@ -29,7 +29,9 @@ public class Board {
 	public double r;
 	public double L;
 	public double W;
+	public int T;
 	
+	private int ticks;
 	private Cell[][] cells;
 	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
@@ -46,7 +48,7 @@ public class Board {
 			loc.y = dimension - loc.y - 1;
 	}
 		
-	Board(int playerId, Point[] simGrid, double r, double L, double W) {
+	Board(int playerId, Point[] simGrid, double r, double L, double W, int T) {
 		if (simGrid.length != dimension*dimension)
 			System.err.println("Attempting to create board with wrong number of Points");
 		
@@ -54,6 +56,9 @@ public class Board {
 		this.r = r;
 		this.L = L;
 		this.W = W;
+		this.T = T;
+		
+		ticks = 0;
 		cells = new Cell[dimension][dimension];
 		landGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
@@ -84,6 +89,8 @@ public class Board {
 	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
 		if (simOutpostList.size() != Consts.numPlayers)
 			System.err.println("Attempting to update board with wrong size list of player outposts");
+		
+		ticks++;
 		
 		// Update number of outposts on each cell and outpost list per player
 		for (int id = 0; id < Consts.numPlayers; id++) {
@@ -138,6 +145,10 @@ public class Board {
 				}
 			}
 		}
+	}
+	
+	private int getTicksRemaining() {
+		return T - ticks;
 	}
 	
 	private Cell findNearestLand(int xStart, int yStart) {

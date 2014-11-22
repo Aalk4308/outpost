@@ -29,7 +29,7 @@ public class Player extends outpost.sim.Player {
     
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T){
     	if (!isInitialized) {
-    		board = new Board(id, simGrid, r, L, W);
+    		board = new Board(id, simGrid, r, L, W, T);
     		isInitialized = true;
     	}
 
