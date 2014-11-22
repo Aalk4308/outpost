@@ -91,6 +91,19 @@ public class Board {
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
 				cells[x][y].setNearestLand(findNearestLand(x, y));
+				
+				int numLandCellsNearby = 0;
+				int numWaterCellsNearby = 0;
+				ArrayList<Loc> nearbyLocs = getNearbyLocs(x, y);
+				for (Loc loc : nearbyLocs) {
+					if (cells[loc.x][loc.y].isLand())
+						numLandCellsNearby++;
+					else
+						numWaterCellsNearby++;
+				}
+				
+				cells[x][y].setNumLandCellsNearby(numLandCellsNearby);
+				cells[x][y].setNumWaterCellsNearby(numWaterCellsNearby);
 			}
 		}
 		
@@ -295,6 +308,15 @@ public class Board {
 	
 	public int numOutpostsSupportableFor(int id) {
 		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
+	}
+	
+	public int numOutpostsSupportableOn(int x, int y) {
+		Cell cell = cells[x][y];
+		return (int) Math.min(cell.getNumLandCellsNearby() / L, cell.getNumWaterCellsNearby() / W);
+	}
+	
+	public int numOutpostsSupportableOn(Loc l) {
+		return numOutpostsSupportableOn(l.x, l.y);
 	}
 	
 	public static class DumpInfo {

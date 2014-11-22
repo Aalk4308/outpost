@@ -17,6 +17,8 @@ public class Cell {
 	private double cellOwnerDistance;			// Double.MAX_VALUE for NEUTRAL or DISPUTED cells
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
 	private Loc nearestLand;
+	private int numLandCellsNearby;
+	private int numWaterCellsNearby;
 	
 	Cell (int x, int y, CellType cellType) {
 		this.x = x;
@@ -35,6 +37,8 @@ public class Cell {
 		this.numOutposts = new int[Consts.numPlayers];
 		System.arraycopy(cell.numOutposts, 0, this.numOutposts, 0, cell.numOutposts.length);
 		this.nearestLand = new Loc(cell.nearestLand);
+		this.numLandCellsNearby = cell.numLandCellsNearby;
+		this.numWaterCellsNearby = cell.numWaterCellsNearby;
 	}
 	
 	public CellType getType() {
@@ -97,6 +101,22 @@ public class Cell {
 	
 	public void setNearestLand(Loc nearestLand) {
 		this.nearestLand = nearestLand;
+	}
+	
+	public int getNumLandCellsNearby() {
+		return numLandCellsNearby;
+	}
+	
+	public void setNumLandCellsNearby(int numLandCellsNearby) {
+		this.numLandCellsNearby = numLandCellsNearby;
+	}
+	
+	public int getNumWaterCellsNearby() {
+		return numWaterCellsNearby;
+	}
+	
+	public void setNumWaterCellsNearby(int numWaterCellsNearby) {
+		this.numWaterCellsNearby = numWaterCellsNearby;
 	}
 	
 	public boolean hasOutpost() {
