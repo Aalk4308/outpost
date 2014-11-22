@@ -16,6 +16,7 @@ public class Cell {
 	private int cellOwnerId;					// -1 for NEUTRAL or DISPUTED cells
 	private double cellOwnerDistance;			// Double.MAX_VALUE for NEUTRAL or DISPUTED cells
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
+	private int[] pathDistanceToHome;			// Shortest path distance to home cell by playerId
 	private Loc nearestLand;
 	private int numLandCellsNearby;
 	private int numWaterCellsNearby;
@@ -26,9 +27,9 @@ public class Cell {
 		this.cellType = cellType;
 		this.setNeutral();
 		this.numOutposts = new int[Consts.numPlayers];
+		this.pathDistanceToHome = new int[Consts.numPlayers];
 	}
 
-	
 	Cell (Cell cell) {
 		this.cellType = cell.cellType;
 		this.cellState = cell.cellState;
@@ -36,6 +37,7 @@ public class Cell {
 		this.cellOwnerDistance = cell.cellOwnerDistance;
 		this.numOutposts = new int[Consts.numPlayers];
 		System.arraycopy(cell.numOutposts, 0, this.numOutposts, 0, cell.numOutposts.length);
+		System.arraycopy(cell.pathDistanceToHome, 0, this.pathDistanceToHome, 0, cell.pathDistanceToHome.length);
 		this.nearestLand = new Loc(cell.nearestLand);
 		this.numLandCellsNearby = cell.numLandCellsNearby;
 		this.numWaterCellsNearby = cell.numWaterCellsNearby;
@@ -146,5 +148,13 @@ public class Cell {
 	
 	public void incNumOutposts(int id) {
 		numOutposts[id]++;
+	}
+	
+	public int getPathDistanceToHome(int id) {
+		return pathDistanceToHome[id];
+	}
+	
+	public void setPathDistanceToHome(int id, int d) {
+		pathDistanceToHome[id] = d;
 	}
 }
