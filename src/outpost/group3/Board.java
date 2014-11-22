@@ -18,6 +18,16 @@ public class Board {
 		public int landCells;
 		public int waterCells;
 		
+		PlayerSummary() {
+			reset();
+		}
+		
+		PlayerSummary(PlayerSummary ps) {
+			totalCells = ps.totalCells;
+			landCells = ps.landCells;
+			waterCells = ps.waterCells;
+		}
+		
 		public void reset() {
 			totalCells = 0;
 			landCells = 0;
@@ -47,7 +57,8 @@ public class Board {
 		if (playerId == 3 || playerId == 2)
 			loc.y = dimension - loc.y - 1;
 	}
-		
+	
+	// Constructor
 	Board(int playerId, Point[] simGrid, double r, double L, double W, int T) {
 		if (simGrid.length != dimension*dimension)
 			System.err.println("Attempting to create board with wrong number of Points");
@@ -81,6 +92,36 @@ public class Board {
 			for (int y = 0; y < dimension; y++) {
 				cells[x][y].setNearestLand(findNearestLand(x, y));
 			}
+		}
+		
+		jps = new JPS(landGrid, dimension, dimension);
+	}
+
+	// Copy constructor
+	Board(Board board) {
+		this.playerId = board.playerId;
+		this.r = board.r;
+		this.L = board.L;
+		this.W = board.W;
+		this.T = board.T;
+		
+		ticks = board.ticks;
+		cells = new Cell[dimension][dimension];
+		landGrid = board.landGrid;
+		outposts = new ArrayList<ArrayList<Loc>>();
+		playerSummaries = new ArrayList<PlayerSummary>();
+		
+		for (int x = 0; x < dimension; x++)
+			for (int y = 0; y < dimension; y++)
+				cells[x][y] = new Cell(board.cells[x][y]);
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			outposts.add(new ArrayList<Loc>());
+			
+			for (int j = 0; j < board.outposts.get(id).size(); j++)
+				outposts.get(id).add(new Loc(board.outposts.get(id).get(j)));
+			
+			playerSummaries.add(new PlayerSummary(board.playerSummaries.get(id)));
 		}
 		
 		jps = new JPS(landGrid, dimension, dimension);
@@ -151,7 +192,7 @@ public class Board {
 		return T - ticks;
 	}
 	
-	private Cell findNearestLand(int xStart, int yStart) {
+	private Loc findNearestLand(int xStart, int yStart) {
 		for (int d = 0; d < dimension; d++) {
 			int x = xStart - d;
 			int y = yStart;
@@ -162,7 +203,7 @@ public class Board {
 					y += i * (j == 2 || j == 3 ? 1 : -1);
 					
 					if (isInside(x, y) && cells[x][y].isLand())
-						return cells[x][y];
+						return new Loc(x, y);
 				}
 			}
 		}
@@ -187,8 +228,7 @@ public class Board {
 	}
 	
 	public Loc nearestLand(Loc loc) {
-		Cell c = cells[loc.x][loc.y].getNearestLand();
-		return new Loc(c.x, c.y);
+		return cells[loc.x][loc.y].getNearestLand();
 	}
 	
 	public ArrayList<Loc> ourOutposts() {

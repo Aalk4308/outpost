@@ -16,7 +16,7 @@ public class Cell {
 	private int cellOwnerId;					// -1 for NEUTRAL or DISPUTED cells
 	private double cellOwnerDistance;			// Double.MAX_VALUE for NEUTRAL or DISPUTED cells
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
-	private Cell nearestLand;
+	private Loc nearestLand;
 	
 	Cell (int x, int y, CellType cellType) {
 		this.x = x;
@@ -34,6 +34,7 @@ public class Cell {
 		this.cellOwnerDistance = cell.cellOwnerDistance;
 		this.numOutposts = new int[Consts.numPlayers];
 		System.arraycopy(cell.numOutposts, 0, this.numOutposts, 0, cell.numOutposts.length);
+		this.nearestLand = new Loc(cell.nearestLand);
 	}
 	
 	public CellType getType() {
@@ -90,11 +91,11 @@ public class Cell {
 		this.cellOwnerDistance = distance;
 	}
 	
-	public Cell getNearestLand() {
+	public Loc getNearestLand() {
 		return nearestLand;
 	}
 	
-	public void setNearestLand(Cell nearestLand) {
+	public void setNearestLand(Loc nearestLand) {
 		this.nearestLand = nearestLand;
 	}
 	
