@@ -17,6 +17,7 @@ public class Cell {
 	private double cellOwnerDistance;			// Double.MAX_VALUE for NEUTRAL or DISPUTED cells
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
 	private Cell nearestLand;
+	private Cell nearestWater;
 	
 	Cell (int x, int y, CellType cellType) {
 		this.x = x;
@@ -94,8 +95,16 @@ public class Cell {
 		return nearestLand;
 	}
 	
+	public Cell getNearestWater() {
+		return nearestWater;
+	}
+	
 	public void setNearestLand(Cell nearestLand) {
 		this.nearestLand = nearestLand;
+	}
+	
+	public void setNearestWater(Cell nearestWater) {
+		this.nearestWater = nearestWater;
 	}
 	
 	public boolean hasOutpost() {
