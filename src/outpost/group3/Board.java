@@ -219,6 +219,40 @@ public class Board {
 		return getCell(loc.x, loc.y);
 	}
 	
+	// Returns the diamond of locations centered around (x,y) at given radius (which will typically be r)
+	public ArrayList<Loc> getNearbyLocs(int xCenter, int yCenter, double radius) {
+		ArrayList<Loc> nearbyLocs = new ArrayList<Loc>();
+		
+		for (int d = 0; d < radius; d++) {
+			int x = xCenter - d;
+			int y = yCenter;
+			
+			for (int j = 0; j < 4; j++) {
+				for (int i = 0; i <= d; i ++) {
+					x += i * (j <= 1 ? 1 : -1);
+					y += i * (j == 2 || j == 3 ? 1 : -1);
+					
+					if (isInside(x, y))
+						nearbyLocs.add(new Loc(x, y));
+				}
+			}
+		}
+		
+		return nearbyLocs;
+	}
+
+	public ArrayList<Loc> getNearbyLocs(int x, int y) {
+		return getNearbyLocs(x, y, r);
+	}
+	
+	public ArrayList<Loc> getNearbyLocs(Loc l) {
+		return getNearbyLocs(l.x, l.y, r);
+	}
+	
+	public ArrayList<Loc> getNearbyLocs(Loc l, double radius) {
+		return getNearbyLocs(l.x, l.y, radius);
+	}
+	
 	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
 		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
 	}
