@@ -354,7 +354,7 @@ public class Board {
 	}
 	
 	public static class DumpInfo {
-		public static enum DumpType { TYPE, STATE, OWNER };
+		public static enum DumpType { TYPE, STATE, OWNER, VALUE };
 		
 		private DumpType dumpType;
 		ArrayList<Loc> path;
@@ -396,6 +396,11 @@ public class Board {
 	 						s = s + cells[x][y].getOwnerId();
 	 					else
 	 						s = s + "-";
+	 				} else if (dumpInfo.dumpType == DumpInfo.DumpType.VALUE) {
+	 					if (cells[x][y].isLand())
+	 						s = s + numOutpostsSupportableOn(x, y);
+	 					else
+	 						s = s + "W";
 	 				}
 				}
 				s = s + " ";
