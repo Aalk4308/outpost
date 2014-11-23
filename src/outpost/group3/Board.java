@@ -291,6 +291,14 @@ public class Board {
 	private boolean isInside(int x, int y) {
 		return (x >= 0 && x < dimension) && (y >= 0 && y < dimension);
 	}
+	
+	public int numLandCellsFor(int id) {
+		return playerSummaries.get(id).landCells;
+	}
+
+	public int numWaterCellsFor(int id) {
+		return playerSummaries.get(id).waterCells;
+	}
 
 	public Loc nearestWater(Loc loc) {
 		Cell c = cells[loc.x][loc.y].getNearestWater();

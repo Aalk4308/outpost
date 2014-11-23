@@ -19,7 +19,7 @@ public class GetResources extends outpost.group3.Strategy {
 			waterlocation= board.nearestWater(new Loc(x, y));
 			
 			targets.add(outpostId,board.nearestLand(waterlocation));
-			if(((numOutposts-1)* board.W)*1.25 < water[id] )//if watercells are greater than ((n-1)*w)*1.25 , break the loop
+			if(((numOutposts-1)* board.W)*1.25 < board.numWaterCellsFor(board.playerId) )//if watercells are greater than ((n-1)*w)*1.25 , break the loop
 				break;
 		}
 		return targets;
