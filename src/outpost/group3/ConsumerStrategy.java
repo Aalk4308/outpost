@@ -15,6 +15,14 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   //center of our consumer at the start
   Loc consCenter = new Loc(); 
 
+  //These represent the positions of the 4 outposts composing a consumer
+  Loc[] consumer = new Loc[4];
+  final int NORTH = 0;
+  final int EAST = 1;
+  final int SOUTH = 2;
+  final int WEST = 3;
+
+
   ConsumerStrategy() {}
 
   ConsumerStrategy(int radius){
@@ -27,12 +35,6 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     outposts = board.ourOutposts();
     int numOutposts = outposts.size();
 
-
-    //These represent the positions of the 4 outposts composing a consumer
-    Loc north = new Loc();
-    Loc east = new Loc();
-    Loc south = new Loc();
-    Loc west = new Loc();
 
     Loc firstOutpost = new Loc(0,0);
     double minDistance = 1000000000.0;
@@ -60,31 +62,24 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         case BUILD: 
           int numInPosition = 0;
 
-          for (Loc outpost : outposts){
-            north = new Loc(consCenter.x,consCenter.y + r);
-            if (north.equals(outpost))
-              numInPosition++;
-            south = new Loc(consCenter.x,consCenter.y - r);
-            if (south.equals(outpost))
-              numInPosition++;
-            east = new Loc(consCenter.x + r,consCenter.y);
-            if (east.equals(outpost))
-              numInPosition++;
-            west = new Loc(consCenter.x - r,consCenter.y);
-            if (west.equals(outpost))
-              numInPosition++;
-          }
+          Loc[NORTH] = new Loc(consCenter.x,consCenter.y + r);
+          Loc[SOUTH] = new Loc(consCenter.x,consCenter.y - r);
+          Loc[EAST] = new Loc(consCenter.x + r,consCenter.y);
+          Loc[WEST] = new Loc(consCenter.x - r,consCenter.y);
 
+          //Are we in formation?
+          for (Loc outpost : outposts)
+            for (int i = 0; i < 4; i++)
+              if (Loc[i].equals(outpost))
+                numInPosition++;
           //We have fully formed a consumer
           if(numInPosition >= 4){
             state = State.ATTACK;
             attackMove(targets,board);
           }
           else{
-            targets.add(north);
-            targets.add(south);
-            targets.add(east);
-            targets.add(west);
+            for (int i = 0; i < 4; i++)
+              targets.add(Loc[i]);
           }
 
           break;
@@ -115,13 +110,13 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
 
   //Set the next move for our consumer formation to attack the closest enemy
   private void attackMove(ArrayList<Loc> targets, Board board){
-    //Find closest enemy
 
     double enemyDist = 100;
 
     Loc centerTarget = new Loc();
     ArrayList<Loc> enemyOutposts = new ArrayList<Loc>();
 
+    //Find closest enemy
     for (int i = 0; i < 4; i ++){
       enemyOutposts = board.theirOutposts(i);
       if (enemyOutposts == outposts)
@@ -136,10 +131,21 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     }
     System.out.println("Moving to target " + centerTarget);
 
-    Loc north = board.nearestLand(new Loc(centerTarget.x,centerTarget.y + r));
-    Loc south = board.nearestLand(new Loc(centerTarget.x,centerTarget.y - r));
-    Loc east = board.nearestLand(new Loc(centerTarget.x + r,centerTarget.y));
-    Loc west = board.nearestLand(new Loc(centerTarget.x - r,centerTarget.y));
+    //Determine which member of our formation is closest
+    Loc closest = new Loc();
+
+    north = board.nearestLand(new Loc(centerTarget.x,centerTarget.y + r));
+    if (north.distance(centerTarget) < enemyDist){
+        enemyDist = north.distance(centerTarget);
+        closest = north;
+    }
+    south = board.nearestLand(new Loc(centerTarget.x,centerTarget.y - r));
+    if (north.distance(centerTarget) < enemyDist){
+        enemyDist = north.distance(centerTarget);
+        closest = north;
+    }
+    east = board.nearestLand(new Loc(centerTarget.x + r,centerTarget.y));
+    west = board.nearestLand(new Loc(centerTarget.x - r,centerTarget.y));
 
     targets.add(north);
     targets.add(south);
