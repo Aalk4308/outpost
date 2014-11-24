@@ -2,6 +2,8 @@ package outpost.group3;
 
 import java.util.ArrayList;
 
+import outpost.group3.Post;
+
 public class ConsumerStrategy extends outpost.group3.Strategy {
 
   private int r;
@@ -21,7 +23,8 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     this.r = radius;
   }
 
-  public ArrayList<Loc> run(Board board) {
+  public void run(Board board, ArrayList<Post> outposts) {
+	  /*
     ArrayList<Loc> targets = new ArrayList<Loc>();
 
     outposts = board.ourOutposts();
@@ -111,6 +114,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       }
     }
     return targets;
+    */
   }
 
   //Set the next move for our consumer formation to attack the closest enemy

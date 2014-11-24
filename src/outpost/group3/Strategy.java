@@ -9,5 +9,5 @@ public abstract class Strategy {
     public Strategy() {}
 
     /* Return a list of the target destinations of the outposts */
-    public abstract ArrayList<Loc> run(Board board);
+    public abstract void run(Board board, ArrayList<Post> outposts);
 }

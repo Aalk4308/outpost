@@ -2,11 +2,14 @@ package outpost.group3;
 
 import java.util.ArrayList;
 
+import outpost.group3.Post;
+
 public class DiagonalStrategy extends outpost.group3.Strategy {
 	DiagonalStrategy() {}
 
-	public ArrayList<Loc> run(Board board) {
-		ArrayList<Loc> targets = new ArrayList<Loc>();
+	public void run(Board board, ArrayList<Post> outposts) {
+		/*
+		 * ArrayList<Loc> targets = new ArrayList<Loc>();
 		
 		ArrayList<Loc> outposts = board.ourOutposts();
 		int numOutposts = outposts.size();
@@ -21,5 +24,6 @@ public class DiagonalStrategy extends outpost.group3.Strategy {
     	}
 		
 		return targets;
+		*/
 	}
 }
