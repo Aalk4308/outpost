@@ -50,7 +50,7 @@ public class Player extends outpost.sim.Player {
 			
 			boolean existing = false;
 			for (Post outpost : outposts) {
-				if (!outpost.isUpdated() && outpost.isAlive() && Loc.equals(outpost.getExpectedLoc(), loc)) {
+				if (!outpost.isUpdated() && Loc.equals(outpost.getExpectedLoc(), loc)) {
 					outpost.setCurrentLoc(loc);
 					outpost.setUpdated(true);
 					outpost.setSimIndex(i);
@@ -65,9 +65,12 @@ public class Player extends outpost.sim.Player {
 			}
 		}
     	
-    	for (Post outpost : outposts)
-    		if (!outpost.isUpdated() && outpost.isAlive())
-    			outpost.destroy();
+    	for (int i = outposts.size() - 1; i >= 0; i--) {
+    		Post outpost = outposts.get(i);
+    		
+    		if (!outpost.isUpdated())
+    			outposts.remove(i);
+    	}
     	
     	// Update the board object
     	board.update(simOutpostList);
@@ -85,21 +88,19 @@ public class Player extends outpost.sim.Player {
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
     	for (Post outpost : outposts) {
-    		if (outpost.isAlive()) {
-    			Loc currentLoc = outpost.getCurrentLoc();
-    			Loc targetLoc = outpost.getTargetLoc();
-        		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
-        		
-        		if (path == null || path.size() == 0 || path.size() == 1) {
-        			outpost.setExpectedLoc(new Loc(currentLoc));
-        			board.simFlip(currentLoc);
-        			moves.add(new movePair(outpost.getSimIndex(), new Pair(currentLoc.x, currentLoc.y)));
-        		} else {
-        			outpost.setExpectedLoc(new Loc(path.get(1)));
-        			Loc expectedLoc = path.get(1);
-        			board.simFlip(expectedLoc);
-        			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
-        		}
+			Loc currentLoc = outpost.getCurrentLoc();
+			Loc targetLoc = outpost.getTargetLoc();
+    		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
+    		
+    		if (path == null || path.size() == 0 || path.size() == 1) {
+    			outpost.setExpectedLoc(new Loc(currentLoc));
+    			board.simFlip(currentLoc);
+    			moves.add(new movePair(outpost.getSimIndex(), new Pair(currentLoc.x, currentLoc.y)));
+    		} else {
+    			outpost.setExpectedLoc(new Loc(path.get(1)));
+    			Loc expectedLoc = path.get(1);
+    			board.simFlip(expectedLoc);
+    			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
     		}
     	}
     	

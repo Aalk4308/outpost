@@ -7,14 +7,12 @@ public class Post {
 	private Loc currentLoc;
 	private Loc expectedLoc;
 	private Loc targetLoc;
-	private boolean alive;
 	private boolean updated;
 	private int simIndex;
 	
 	Post(int id, Loc loc, int simIndex) {
 		this.id = id;
 		this.currentLoc = loc;
-		this.alive = true;
 		this.updated = true;
 		this.simIndex = simIndex;
 	}
@@ -53,14 +51,6 @@ public class Post {
 	
 	public void setSimIndex(int simIndex) {
 		this.simIndex = simIndex;
-	}
-	
-	public boolean isAlive() {
-		return alive;
-	}
-	
-	public void destroy() {
-		alive = false;
 	}
 	
 	public boolean isUpdated() {
