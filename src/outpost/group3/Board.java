@@ -94,6 +94,10 @@ public class Board {
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
 				cells[x][y].setNearestLand(findNearestLand(x, y));
+				cells[x][y].setNearestWater(findNearestWater(x, y));
+				
+				if (x == 1 && y == 1)
+				System.out.printf("Nearest water to %d %d is %s\n", x, y, findNearestWater(x, y));
 				
 				int numLandCellsNearby = 0;
 				int numWaterCellsNearby = 0;
@@ -246,43 +250,38 @@ public class Board {
 		return loc;
 	}
 	
+	/* Inefficient algorithm to find nearest land to a cell, but we only call it once per cell and then cache the results */
 	private Loc findNearestLand(int xStart, int yStart) {
-		for (int d = 0; d < dimension; d++) {
-			int x = xStart - d;
-			int y = yStart;
-			
-			for (int j = 0; j < 4; j++) {
-				for (int i = 0; i <= d; i ++) {
-					x += i * (j <= 1 ? 1 : -1);
-					y += i * (j == 2 || j == 3 ? 1 : -1);
-					
-					if (isInside(x, y) && cells[x][y].isLand())
-						return new Loc(x, y);
+		Loc nearestLand = null;
+		int minDistance = Integer.MAX_VALUE;
+		
+		for (int x = 0; x < dimension; x++) {
+			for (int y = 0; y < dimension; y++) {
+				if (cells[x][y].isLand() && Loc.mDistance(x, y, xStart, yStart) < minDistance) {
+					minDistance = Loc.mDistance(x, y, xStart, yStart);
+					nearestLand = new Loc(x, y);
 				}
 			}
 		}
 		
-		return null;
+		return nearestLand;
 	}
-	
-	private Cell findNearestWater(int xStart, int yStart){
-		for (int d = 0; d < dimension; d++) {
-			int x = xStart - d;
-			int y = yStart;
-			
-			for (int j = 0; j < 4; j++) {
-				for (int i = 0; i <= d; i ++) {
-					x += i * (j <= 1 ? 1 : -1);
-					y += i * (j == 2 || j == 3 ? 1 : -1);
-					
-					if (isInside(x, y) && !cells[x][y].isLand())
-						return cells[x][y];
+
+	/* Inefficient algorithm to find nearest water to a cell, but we only call it per cell and then cache the results */
+	private Loc findNearestWater(int xStart, int yStart) {
+		Loc nearestWater = null;
+		int minDistance = Integer.MAX_VALUE;
+		
+		for (int x = 0; x < dimension; x++) {
+			for (int y = 0; y < dimension; y++) {
+				if (cells[x][y].isWater() && Loc.mDistance(x, y, xStart, yStart) < minDistance) {
+					minDistance = Loc.mDistance(x, y, xStart, yStart);
+					nearestWater = new Loc(x, y);
 				}
 			}
 		}
 		
-		return null;
-		
+		return nearestWater;
 	}
 	
 	public Cell getCell(int x, int y) {
@@ -331,13 +330,13 @@ public class Board {
 	public Loc crop(Loc loc) {
 		Loc l = new Loc(loc);
 		
-		if (l.x > dimension)
-			l.x = dimension;
+		if (l.x > dimension - 1)
+			l.x = dimension - 1;
 		else if (l.x < 0)
 			l.x = 0;
 		
-		if (l.y > dimension)
-			l.y = dimension;
+		if (l.y > dimension - 1)
+			l.y = dimension - 1;
 		else if (l.y < 0)
 			l.y = 0;
 		
@@ -348,7 +347,6 @@ public class Board {
 		Loc l = crop(loc);		
 		return cells[l.x][l.y].getNearestLand();
 	}
-	
 
 	public Loc nearestWater(Loc loc) {
 		Loc l = crop(loc);
