@@ -18,6 +18,16 @@ public class Board {
 		public int landCells;
 		public int waterCells;
 		
+		PlayerSummary() {
+			reset();
+		}
+		
+		PlayerSummary(PlayerSummary ps) {
+			totalCells = ps.totalCells;
+			landCells = ps.landCells;
+			waterCells = ps.waterCells;
+		}
+		
 		public void reset() {
 			totalCells = 0;
 			landCells = 0;
@@ -29,7 +39,9 @@ public class Board {
 	public double r;
 	public double L;
 	public double W;
+	public int T;
 	
+	private int ticks;
 	private Cell[][] cells;
 	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
@@ -45,8 +57,9 @@ public class Board {
 		if (playerId == 3 || playerId == 2)
 			loc.y = dimension - loc.y - 1;
 	}
-		
-	Board(int playerId, Point[] simGrid, double r, double L, double W) {
+	
+	// Constructor
+	Board(int playerId, Point[] simGrid, double r, double L, double W, int T) {
 		if (simGrid.length != dimension*dimension)
 			System.err.println("Attempting to create board with wrong number of Points");
 		
@@ -54,10 +67,15 @@ public class Board {
 		this.r = r;
 		this.L = L;
 		this.W = W;
+		this.T = T;
+		
+		ticks = 0;
 		cells = new Cell[dimension][dimension];
 		landGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
+		
+		jps = new JPS(landGrid, dimension, dimension);
 		
 		for (int i = 0; i < simGrid.length; i++) {
 			Point p = simGrid[i];
@@ -72,18 +90,86 @@ public class Board {
 			playerSummaries.add(new PlayerSummary());
 		}
 		
+		// Precompute number of land and water cells within r Manhattan distance of each cell
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
 				cells[x][y].setNearestLand(findNearestLand(x, y));
+				
+				int numLandCellsNearby = 0;
+				int numWaterCellsNearby = 0;
+				ArrayList<Loc> nearbyLocs = getNearbyLocs(x, y);
+				for (Loc loc : nearbyLocs) {
+					if (cells[loc.x][loc.y].isLand())
+						numLandCellsNearby++;
+					else
+						numWaterCellsNearby++;
+				}
+				
+				cells[x][y].setNumLandCellsNearby(numLandCellsNearby);
+				cells[x][y].setNumWaterCellsNearby(numWaterCellsNearby);
 			}
 		}
 		
+		// Precompute all shortest paths to home cells by BFS
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			Loc home = getHomeCell(id);
+			LinkedList<Loc> queue = new LinkedList<Loc>();
+			boolean[][] visited = new boolean[dimension][dimension];
+			
+			queue.add(home);
+			visited[home.x][home.y] = true;
+			cells[home.x][home.y].setPathDistanceToHome(id, 0);
+			
+			while (!queue.isEmpty()) {
+				Loc loc = queue.poll();
+				ArrayList<Loc> neighbors = getNearbyLocs(loc.x, loc.y, 1);
+				
+				for (Loc neighbor : neighbors) {
+					if (!visited[neighbor.x][neighbor.y]) {
+						queue.add(neighbor);
+						visited[neighbor.x][neighbor.y] = true;
+						cells[neighbor.x][neighbor.y].setPathDistanceToHome(id, cells[loc.x][loc.y].getPathDistanceToHome(id) + 1);
+					}
+				}
+			}
+		}
+	}
+
+	// Copy constructor
+	Board(Board board) {
+		this.playerId = board.playerId;
+		this.r = board.r;
+		this.L = board.L;
+		this.W = board.W;
+		this.T = board.T;
+		
+		ticks = board.ticks;
+		cells = new Cell[dimension][dimension];
+		landGrid = board.landGrid;
+		outposts = new ArrayList<ArrayList<Loc>>();
+		playerSummaries = new ArrayList<PlayerSummary>();
+		
 		jps = new JPS(landGrid, dimension, dimension);
+		
+		for (int x = 0; x < dimension; x++)
+			for (int y = 0; y < dimension; y++)
+				cells[x][y] = new Cell(board.cells[x][y]);
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			outposts.add(new ArrayList<Loc>());
+			
+			for (int j = 0; j < board.outposts.get(id).size(); j++)
+				outposts.get(id).add(new Loc(board.outposts.get(id).get(j)));
+			
+			playerSummaries.add(new PlayerSummary(board.playerSummaries.get(id)));
+		}
 	}
 	
 	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
 		if (simOutpostList.size() != Consts.numPlayers)
 			System.err.println("Attempting to update board with wrong size list of player outposts");
+		
+		ticks++;
 		
 		// Update number of outposts on each cell and outpost list per player
 		for (int id = 0; id < Consts.numPlayers; id++) {
@@ -140,7 +226,27 @@ public class Board {
 		}
 	}
 	
-	private Cell findNearestLand(int xStart, int yStart) {
+	private int getTicksRemaining() {
+		return T - ticks;
+	}
+	
+	public Loc getHomeCell(int id) {
+		Loc loc = null;
+		
+		if (id == 0)
+			loc = new Loc(0, 0);
+		else if (id == 1)
+			loc = new Loc(dimension - 1, 0);
+		else if (id == 2)
+			loc = new Loc(dimension - 1, dimension - 1);
+		else if (id == 3)
+			loc = new Loc(0, dimension - 1);
+			
+		simFlip(loc);
+		return loc;
+	}
+	
+	private Loc findNearestLand(int xStart, int yStart) {
 		for (int d = 0; d < dimension; d++) {
 			int x = xStart - d;
 			int y = yStart;
@@ -151,7 +257,7 @@ public class Board {
 					y += i * (j == 2 || j == 3 ? 1 : -1);
 					
 					if (isInside(x, y) && cells[x][y].isLand())
-						return cells[x][y];
+						return new Loc(x, y);
 				}
 			}
 		}
@@ -187,6 +293,33 @@ public class Board {
 		return getCell(loc.x, loc.y);
 	}
 	
+	// Returns the diamond of locations centered around (x,y) at given radius (which will typically be r)
+	// Includes the central location
+	public ArrayList<Loc> getNearbyLocs(int xCenter, int yCenter, double radius) {
+		ArrayList<Loc> nearbyLocs = new ArrayList<Loc>();
+		
+		for (int x = xCenter - (int) radius; x <= xCenter + (int) radius; x++) {
+			for (int y = yCenter - (int) radius; y <= yCenter + (int) radius; y++) {
+				if (isInside(x, y) && Loc.mDistance(xCenter, yCenter, x, y) <= radius)
+					nearbyLocs.add(new Loc(x, y));
+			}
+		}
+				
+		return nearbyLocs;
+	}
+
+	public ArrayList<Loc> getNearbyLocs(int x, int y) {
+		return getNearbyLocs(x, y, r);
+	}
+	
+	public ArrayList<Loc> getNearbyLocs(Loc l) {
+		return getNearbyLocs(l.x, l.y, r);
+	}
+	
+	public ArrayList<Loc> getNearbyLocs(Loc l, double radius) {
+		return getNearbyLocs(l.x, l.y, radius);
+	}
+	
 	public ArrayList<Loc> findPath(int xStart, int yStart, int xEnd, int yEnd) {
 		return findPath(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
 	}
@@ -195,21 +328,32 @@ public class Board {
 		return jps.findPath(start, end);
 	}
 	
+	public Loc crop(Loc loc) {
+		Loc l = new Loc(loc);
+		
+		if (l.x > dimension)
+			l.x = dimension;
+		else if (l.x < 0)
+			l.x = 0;
+		
+		if (l.y > dimension)
+			l.y = dimension;
+		else if (l.y < 0)
+			l.y = 0;
+		
+		return l;
+	}
+	
 	public Loc nearestLand(Loc loc) {
-                Loc l = new Loc(loc);
-                if (l.x > dimension)
-                  l.x = dimension;
-                else if (l.x < 0)
-                  l.x = 0;
-                if (l.y > dimension)
-                  l.y = dimension;
-                else if (l.y < 0)
-                  l.y = 0;
-		Cell c = cells[l.x][l.y].getNearestLand();
-		return new Loc(c.x, c.y);
+		Loc l = crop(loc);		
+		return cells[l.x][l.y].getNearestLand();
 	}
 	
 
+	public Loc nearestWater(Loc loc) {
+		Loc l = crop(loc);
+		return cells[l.x][l.y].getNearestWater();
+	}
 	
 	public ArrayList<Loc> ourOutposts() {
 		return outposts.get(playerId);
@@ -247,8 +391,17 @@ public class Board {
 		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
 	}
 	
+	public int numOutpostsSupportableOn(int x, int y) {
+		Cell cell = cells[x][y];
+		return (int) Math.min(cell.getNumLandCellsNearby() / L, cell.getNumWaterCellsNearby() / W);
+	}
+	
+	public int numOutpostsSupportableOn(Loc l) {
+		return numOutpostsSupportableOn(l.x, l.y);
+	}
+	
 	public static class DumpInfo {
-		public static enum DumpType { TYPE, STATE, OWNER };
+		public static enum DumpType { TYPE, STATE, OWNER, VALUE };
 		
 		private DumpType dumpType;
 		ArrayList<Loc> path;
@@ -290,6 +443,11 @@ public class Board {
 	 						s = s + cells[x][y].getOwnerId();
 	 					else
 	 						s = s + "-";
+	 				} else if (dumpInfo.dumpType == DumpInfo.DumpType.VALUE) {
+	 					if (cells[x][y].isLand())
+	 						s = s + numOutpostsSupportableOn(x, y);
+	 					else
+	 						s = s + "W";
 	 				}
 				}
 				s = s + " ";
@@ -311,10 +469,5 @@ public class Board {
 
 	public int numWaterCellsFor(int id) {
 		return playerSummaries.get(id).waterCells;
-	}
-
-	public Loc nearestWater(Loc loc) {
-		Cell c = cells[loc.x][loc.y].getNearestWater();
-		return new Loc(c.x, c.y);
 	}
 }
