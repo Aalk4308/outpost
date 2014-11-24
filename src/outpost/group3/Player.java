@@ -9,35 +9,42 @@ import outpost.sim.movePair;
 import outpost.group3.Board;
 
 public class Player extends outpost.sim.Player {
-	static int size = 100;
-	static Random random = new Random();
-	
-	private boolean isInitialized = false;
-	private Board board;
-	
-    public Player(int id) {
-		super(id);
-	}
 
-	public void init() {}
-    
-    public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
-    	//System.out.printf("haha, we are trying to delete a outpost for player %d\n", this.id);
-    	int del = random.nextInt(king_outpostlist.get(id).size());
-    	return del;
+    static int size = 100;
+    static Random random = new Random();
+
+    private boolean isInitialized = false;
+    private Board board;
+
+    public Player(int id) {
+      super(id);
     }
-    
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T){
+
+    public void init() {}
+
+    public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
+      //System.out.printf("haha, we are trying to delete a outpost for player %d\n", this.id);
+      int del = random.nextInt(king_outpostlist.get(id).size());
+      return del;
+    }
+
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
     	if (!isInitialized) {
     		board = new Board(id, simGrid, r, L, W, T);
     		isInitialized = true;
     	}
 
     	board.update(simOutpostList);
-    	
+    	ArrayList<Loc> targets;
     	/* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
+    	
     	Strategy strategy = new DiagonalStrategy();
-    	ArrayList<Loc> targets = strategy.run(board);
+    	targets = strategy.run(board);
+    	
+    	if(((board.ourOutposts().size()-1)* board.W)*1.25 > board.numWaterCellsFor(board.playerId) ) {
+    		Strategy resources = new GetResources();//call when resources are scarce
+    		targets = resources.run(board);
+    	}
     	
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
