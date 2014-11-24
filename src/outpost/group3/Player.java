@@ -41,11 +41,9 @@ public class Player extends outpost.sim.Player {
     	//Strategy strategy = new DiagonalStrategy();
     	//targets = strategy.run(board);
     	
-    	//if(((board.ourOutposts().size()-1)* board.W)*1.25 > board.numWaterCellsFor(board.playerId) ) {
-    		Strategy resources = new GetResources();//call when resources are scarce
-    		targets = resources.run(board);
-    	//}
-    	
+    	Strategy resources = new GetResources(); //call when resources are scarce
+    	targets = resources.run(board);
+    		
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
     	for (int i = 0; i < targets.size(); i++) {
