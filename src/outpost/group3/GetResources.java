@@ -17,7 +17,7 @@ public class GetResources extends outpost.group3.Strategy {
 			int oy = outposts.get(outpostId).y;
 			
 			double bestVal = 0;
-			Loc bestLoc = null;
+			Loc bestLoc = new Loc(ox, oy);
 			
 			for (int x = 0; x < Board.dimension; x++) {
 				for (int y = 0; y < Board.dimension; y++) {
