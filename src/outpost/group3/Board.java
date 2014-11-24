@@ -176,13 +176,26 @@ public class Board {
 	}
 	
 	public Loc nearestLand(Loc loc) {
-		Cell c = cells[loc.x][loc.y].getNearestLand();
+                Loc l = new Loc(loc);
+                if (l.x > dimension)
+                  l.x = dimension;
+                else if (l.x < 0)
+                  l.x = 0;
+                if (l.y > dimension)
+                  l.y = dimension;
+                else if (l.y < 0)
+                  l.y = 0;
+		Cell c = cells[l.x][l.y].getNearestLand();
 		return new Loc(c.x, c.y);
 	}
 	
 	public ArrayList<Loc> ourOutposts() {
 		return outposts.get(playerId);
 	}
+
+        public ArrayList<Loc> theirOutposts(int id){
+                return outposts.get(id);
+        }
 	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
