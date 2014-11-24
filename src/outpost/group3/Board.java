@@ -265,6 +265,26 @@ public class Board {
 		return null;
 	}
 	
+	private Cell findNearestWater(int xStart, int yStart){
+		for (int d = 0; d < dimension; d++) {
+			int x = xStart - d;
+			int y = yStart;
+			
+			for (int j = 0; j < 4; j++) {
+				for (int i = 0; i <= d; i ++) {
+					x += i * (j <= 1 ? 1 : -1);
+					y += i * (j == 2 || j == 3 ? 1 : -1);
+					
+					if (isInside(x, y) && !cells[x][y].isLand())
+						return cells[x][y];
+				}
+			}
+		}
+		
+		return null;
+		
+	}
+	
 	public Cell getCell(int x, int y) {
 		return cells[x][y];
 	}
@@ -308,8 +328,31 @@ public class Board {
 		return jps.findPath(start, end);
 	}
 	
+	public Loc crop(Loc loc) {
+		Loc l = new Loc(loc);
+		
+		if (l.x > dimension)
+			l.x = dimension;
+		else if (l.x < 0)
+			l.x = 0;
+		
+		if (l.y > dimension)
+			l.y = dimension;
+		else if (l.y < 0)
+			l.y = 0;
+		
+		return l;
+	}
+	
 	public Loc nearestLand(Loc loc) {
-		return cells[loc.x][loc.y].getNearestLand();
+		Loc l = crop(loc);		
+		return cells[l.x][l.y].getNearestLand();
+	}
+	
+
+	public Loc nearestWater(Loc loc) {
+		Loc l = crop(loc);
+		return cells[l.x][l.y].getNearestWater();
 	}
 	
 	public ArrayList<Loc> ourOutposts() {
@@ -358,7 +401,7 @@ public class Board {
 	}
 	
 	public static class DumpInfo {
-		public static enum DumpType { TYPE, STATE, OWNER };
+		public static enum DumpType { TYPE, STATE, OWNER, VALUE };
 		
 		private DumpType dumpType;
 		ArrayList<Loc> path;
@@ -400,6 +443,11 @@ public class Board {
 	 						s = s + cells[x][y].getOwnerId();
 	 					else
 	 						s = s + "-";
+	 				} else if (dumpInfo.dumpType == DumpInfo.DumpType.VALUE) {
+	 					if (cells[x][y].isLand())
+	 						s = s + numOutpostsSupportableOn(x, y);
+	 					else
+	 						s = s + "W";
 	 				}
 				}
 				s = s + " ";
@@ -413,5 +461,13 @@ public class Board {
     
 	private boolean isInside(int x, int y) {
 		return (x >= 0 && x < dimension) && (y >= 0 && y < dimension);
+	}
+	
+	public int numLandCellsFor(int id) {
+		return playerSummaries.get(id).landCells;
+	}
+
+	public int numWaterCellsFor(int id) {
+		return playerSummaries.get(id).waterCells;
 	}
 }

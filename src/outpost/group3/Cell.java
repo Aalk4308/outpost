@@ -18,6 +18,7 @@ public class Cell {
 	private int[] numOutposts;					// Number of outposts on this cell by playerId
 	private int[] pathDistanceToHome;			// Shortest path distance to home cell by playerId
 	private Loc nearestLand;
+	private Loc nearestWater;
 	private int numLandCellsNearby;
 	private int numWaterCellsNearby;
 	
@@ -103,6 +104,14 @@ public class Cell {
 	
 	public void setNearestLand(Loc nearestLand) {
 		this.nearestLand = nearestLand;
+	}
+	
+	public Loc getNearestWater() {
+		return nearestWater;
+	}
+	
+	public void setNearestWater(Loc nearestWater) {
+		this.nearestWater = nearestWater;
 	}
 	
 	public int getNumLandCellsNearby() {

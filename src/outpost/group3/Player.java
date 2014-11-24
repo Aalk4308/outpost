@@ -28,17 +28,23 @@ public class Player extends outpost.sim.Player {
       return del;
     }
 
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T){
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
     	if (!isInitialized) {
     		board = new Board(id, simGrid, r, L, W, T);
     		isInitialized = true;
     	}
 
     	board.update(simOutpostList);
-    	
+    	ArrayList<Loc> targets;
     	/* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
+    	
     	Strategy strategy = new ConsumerStrategy(r);
-    	ArrayList<Loc> targets = strategy.run(board);
+    	targets = strategy.run(board);
+    	
+    	if(((board.ourOutposts().size()-1)* board.W)*1.25 > board.numWaterCellsFor(board.playerId) ) {
+    		Strategy resources = new GetResources();//call when resources are scarce
+    		targets = resources.run(board);
+    	}
     	
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
@@ -57,5 +63,4 @@ public class Player extends outpost.sim.Player {
     	
     	return moves;
     }
-
-  }
+}
