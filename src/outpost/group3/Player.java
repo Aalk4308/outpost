@@ -28,34 +28,39 @@ public class Player extends outpost.sim.Player {
       return del;
     }
 
-    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T){
-      if (!isInitialized) {
-        board = new Board(id, simGrid, r, L, W);
-        isInitialized = true;
-      }
+    public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
+    	if (!isInitialized) {
+    		board = new Board(id, simGrid, r, L, W);
+    		isInitialized = true;
+    	}
 
-      board.update(simOutpostList);
-
-      /* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
-      Strategy strategy = new ConsumerStrategy(r);
-      ArrayList<Loc> targets = strategy.run(board);
-
-      ArrayList<movePair> moves = new ArrayList<movePair>();
-
-      for (int i = 0; i < targets.size(); i++) {
-        Loc outpostLoc = board.ourOutposts().get(i);
-        Loc targetLoc = targets.get(i);
-        ArrayList<Loc> path = board.findPath(outpostLoc, targetLoc);
-
-        if (path == null || path.size() == 0 || path.size() == 1)
-          moves.add(new movePair(i, new Pair(outpostLoc.x, outpostLoc.y)));
-        else {
-          board.simFlip(path.get(1));
-          moves.add(new movePair(i, new Pair(path.get(1).x, path.get(1).y)));
-        }
-      }
-
-      return moves;
+    	board.update(simOutpostList);
+    	ArrayList<Loc> targets;
+    	/* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
+    	
+    	Strategy strategy = new DiagonalStrategy();
+    	targets = strategy.run(board);
+    	
+    	if(((board.ourOutposts().size()-1)* board.W)*1.25 > board.numWaterCellsFor(board.playerId) ){
+    	Strategy resources = new GetResources();//call when resources are scarce
+    	targets = resources.run(board);
+    	}
+    	
+    	ArrayList<movePair> moves = new ArrayList<movePair>();
+    	
+    	for (int i = 0; i < targets.size(); i++) {
+    		Loc outpostLoc = board.ourOutposts().get(i);
+    		Loc targetLoc = targets.get(i);
+    		ArrayList<Loc> path = board.findPath(outpostLoc, targetLoc);
+    		
+    		if (path == null || path.size() == 0 || path.size() == 1)
+    			moves.add(new movePair(i, new Pair(outpostLoc.x, outpostLoc.y)));
+    		else {
+    			board.simFlip(path.get(1));
+    			moves.add(new movePair(i, new Pair(path.get(1).x, path.get(1).y)));
+    		}
+    	}
+    	
+    	return moves;
     }
-
-  }
+}
