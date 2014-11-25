@@ -141,19 +141,24 @@ public class Player extends outpost.sim.Player {
     	for (Post outpost : outposts)
     		outpost.setUpdated(false);
 
+    	ArrayList<Post> outpostsForStrategy;
+    	int targetNum;
+    	
     	// Run resources gatherers
-    	int targetNumResourceGatherers = 2;		// Replace with a calculation
-    	ArrayList<Post> resourceGatherers = new ArrayList<Post>();
-    	assignStrategy(resourceGatherers, "resourceGatherer", targetNumResourceGatherers);
-    	Strategy gatherResources = new GetResources();
-    	gatherResources.run(board, resourceGatherers);
-    	markStrategyDone(resourceGatherers);
+    	targetNum = 6;		// Replace with a calculation
+    	outpostsForStrategy = new ArrayList<Post>();
+    	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
+    	Strategy getResources = new GetResources();
+    	getResources.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
     	
-    	
-    	/* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
-    	
-    	//Strategy strategy = new DiagonalStrategy();
-    	//targets = strategy.run(board);
+    	// Run diagonal strategy
+    	targetNum = outposts.size();		// Temporary hack to just assign the rest
+    	outpostsForStrategy = new ArrayList<Post>();
+    	assignStrategy(outpostsForStrategy, "diagonalWall", targetNum);
+    	Strategy DiagonalStrategy = new DiagonalStrategy();
+    	DiagonalStrategy.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
     	
     	
     	// Pass back to the simulator where we want our outposts to go
