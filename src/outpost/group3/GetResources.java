@@ -24,11 +24,11 @@ public class GetResources extends outpost.group3.Strategy {
 			Cell currentCell = board.getCell(currentLoc);
 			Loc bestLoc = null;
 			int bestDist;
-			
+						
 			// First, target the farthest cell (based on path distance) from the home cell that the outpost can reach before the season ends, supports as many or more than the cell it was last targeting, and does not overlap with targets already assigned to other outposts
 			bestDist = 0;
-			for (int x = 0; x < Board.dimension; x++) {
-				for (int y = 0; y < Board.dimension; y++) {
+			for (int x = 0; x < Board.dimension / 2; x++) {
+				for (int y = 0; y < Board.dimension / 2; y++) {
 					Loc loc = new Loc(x, y);
 					Cell cell = board.getCell(loc);
 					
@@ -47,7 +47,7 @@ public class GetResources extends outpost.group3.Strategy {
 					
 					if (path.size() - 1 > ticksRemainingInSeason)
 						continue;
-					
+										
 					if (cell.getPathDistanceToHome(board.playerId) > bestDist || (cell.getPathDistanceToHome(board.playerId) == bestDist && board.numOutpostsSupportableOn(loc) > board.numOutpostsSupportableOn(bestLoc))) {
 						bestDist = cell.getPathDistanceToHome(board.playerId);
 						bestLoc = loc;
@@ -70,8 +70,8 @@ public class GetResources extends outpost.group3.Strategy {
 			
 			// Otherwise, find the nearest one from the current location (based on path distance) that supports at least a full outpost
 			bestDist = Integer.MAX_VALUE;
-			for (int x = 0; x < Board.dimension; x++) {
-				for (int y = 0; y < Board.dimension; y++) {
+			for (int x = 0; x < Board.dimension / 2; x++) {
+				for (int y = 0; y < Board.dimension / 2; y++) {
 					Loc loc = new Loc(x, y);
 					Cell cell = board.getCell(loc);
 					
@@ -99,7 +99,13 @@ public class GetResources extends outpost.group3.Strategy {
 				continue;
 			}
 			
-			// No target was found, so return this outpost to the general
+			// If we had a previous target, use that
+			if (outpost.getTargetLoc() != null) {
+				targets.add(outpost.getTargetLoc());
+				continue;
+			}
+			
+			// No target was found, and we did not previously have one, so return this outpost to the general
 			outpost.setStrategy(null);
 		}
 	}

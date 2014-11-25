@@ -82,9 +82,13 @@ public class Player extends outpost.sim.Player {
     }
     
     private void markStrategyDone(ArrayList<Outpost> outpostsForStrategy) {
-    	for (Outpost outpost : outpostsForStrategy)
-    		if (outpost.getStrategy() == null)
+    	for (Outpost outpost : outpostsForStrategy) {
+    		if (outpost.getStrategy() == null) {
+    			outpost.memory.clear();
+    			outpost.setTargetLoc(null);
     			outpost.setUpdated(false);
+    		}
+    	}
     }
     
     public void init() {}
@@ -147,7 +151,7 @@ public class Player extends outpost.sim.Player {
     	int targetNum;
     	
     	// Run resources gatherers
-    	targetNum = 6;		// Replace with a calculation
+    	targetNum = 999;		// Replace with a calculation
     	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
     	Strategy getResources = new GetResources();
