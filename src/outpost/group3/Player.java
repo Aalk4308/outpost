@@ -31,6 +31,7 @@ public class Player extends outpost.sim.Player {
     		if (!outpost.isUpdated() && outpost.getStrategy() == strategyName) {
           		if (outpostsForStrategy.size() == max) {
     				outpost.setStrategy(null);
+    				outpost.setTargetLoc(null);
     				outpost.memory.clear();
           		} else {
         			outpostsForStrategy.add(outpost);
@@ -64,6 +65,7 @@ public class Player extends outpost.sim.Player {
     		if (!outpost.isUpdated() && outpostsForStrategy.size() < max) {
     			outpostsForStrategy.add(outpost);
     			outpost.setStrategy(strategyName);
+				outpost.setTargetLoc(null);
     			outpost.memory.clear();
     			outpost.setUpdated(true);
     			

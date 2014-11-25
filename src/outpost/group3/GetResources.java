@@ -7,40 +7,100 @@ import outpost.group3.Outpost;
 public class GetResources extends outpost.group3.Strategy {
 	GetResources() {}
 	
+	private boolean overlaps(Board board, Loc loc, ArrayList<Loc> targets) {
+		for (Loc target : targets)
+			if (Loc.mDistance(target, loc) < 2*board.r)
+				return true;
+		
+		return false;
+	}
+	
 	public void run(Board board, ArrayList<Outpost> outposts) {
 		ArrayList<Loc> targets = new ArrayList<Loc>();
+		int ticksRemainingInSeason = board.getTicksRemainingInSeason();
 		
 		for (Outpost outpost : outposts) {
-			double bestVal = 0;
 			Loc currentLoc = outpost.getCurrentLoc();
-			Loc bestLoc = new Loc(currentLoc);
+			Cell currentCell = board.getCell(currentLoc);
+			Loc bestLoc = null;
+			int bestDist;
 			
+			// First, target the farthest cell (based on path distance) from the home cell that the outpost can reach before the season ends, supports as many or more than the cell it was last targeting, and does not overlap with targets already assigned to other outposts
+			bestDist = 0;
 			for (int x = 0; x < Board.dimension; x++) {
 				for (int y = 0; y < Board.dimension; y++) {
 					Loc loc = new Loc(x, y);
 					Cell cell = board.getCell(loc);
 					
-					double val = ((double) board.numOutpostsSupportableOn(loc)) / Loc.mDistance(loc, currentLoc.x, currentLoc.y);
-					if (cell.isLand() && val > bestVal) {
-						boolean overlap = false;
-						
-						for (Loc target : targets) {
-							if (Loc.mDistance(target, loc) < 2*board.r) {
-								overlap = true;
-								break;
-							}
-						}
-						
-						if (!overlap) {
-							bestVal = val;
-							bestLoc = loc;
-						}
+					if (cell.isWater() ||
+						board.numOutpostsSupportableOn(loc) == 0 ||
+						(outpost.getTargetLoc() != null && board.numOutpostsSupportableOn(loc) < board.numOutpostsSupportableOn(outpost.getTargetLoc())) ||
+						cell.getPathDistanceToHome(board.playerId) <= currentCell.getPathDistanceToHome(board.playerId) ||
+						overlaps(board, loc, targets))
+						continue;
+					
+					// Optimization: There is no need to calculate a path if the Manhattan distance is itself too far
+					if (Loc.mDistance(currentLoc, loc) > ticksRemainingInSeason)
+						continue;
+					
+					ArrayList<Loc> path = board.findPath(currentLoc, loc);
+					
+					if (path.size() - 1 > ticksRemainingInSeason)
+						continue;
+					
+					if (cell.getPathDistanceToHome(board.playerId) > bestDist || (cell.getPathDistanceToHome(board.playerId) == bestDist && board.numOutpostsSupportableOn(loc) > board.numOutpostsSupportableOn(bestLoc))) {
+						bestDist = cell.getPathDistanceToHome(board.playerId);
+						bestLoc = loc;
 					}
 				}
 			}
 			
-			targets.add(bestLoc);
-			outpost.setTargetLoc(bestLoc);
+			if (bestLoc != null) {
+				targets.add(bestLoc);
+				outpost.setTargetLoc(bestLoc);
+				continue;
+			}
+			
+			// If no such cell was found and the current one supports some, stay, put
+			if (board.numOutpostsSupportableOn(currentLoc) >= 1) {
+				targets.add(currentLoc);
+				outpost.setTargetLoc(currentLoc);
+				continue;
+			}
+			
+			// Otherwise, find the nearest one from the current location (based on path distance) that supports at least a full outpost
+			bestDist = Integer.MAX_VALUE;
+			for (int x = 0; x < Board.dimension; x++) {
+				for (int y = 0; y < Board.dimension; y++) {
+					Loc loc = new Loc(x, y);
+					Cell cell = board.getCell(loc);
+					
+					if (cell.isWater() ||
+						board.numOutpostsSupportableOn(loc) < 1 ||
+						overlaps(board, loc, targets))
+						continue;
+					
+					// Optimization: There is no need to calculate a path if the Manhattan distance is itself too far
+					if (Loc.mDistance(currentLoc, loc) > bestDist)
+						continue;
+					
+					ArrayList<Loc> path = board.findPath(currentLoc, loc);
+					
+					if (path.size() - 1 < bestDist || (path.size() - 1== bestDist && board.numOutpostsSupportableOn(loc) > board.numOutpostsSupportableOn(bestLoc))) {
+						bestDist = path.size() - 1;
+						bestLoc = loc;
+					}
+				}
+			}
+			
+			if (bestLoc != null) {
+				targets.add(bestLoc);
+				outpost.setTargetLoc(bestLoc);
+				continue;
+			}
+			
+			// No target was found, so return this outpost to the general
+			outpost.setStrategy(null);
 		}
 	}
 }
