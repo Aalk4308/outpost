@@ -6,7 +6,7 @@ import outpost.sim.Pair;
 import outpost.sim.Point;
 import outpost.sim.movePair;
 import outpost.group3.Board;
-import outpost.group3.Post;
+import outpost.group3.Outpost;
 
 public class Player extends outpost.sim.Player {
 
@@ -16,18 +16,18 @@ public class Player extends outpost.sim.Player {
     private boolean isInitialized = false;
     private Board board;
     
-    ArrayList<Post> outposts;
+    ArrayList<Outpost> outposts;
     int nextOutpostId;
     
     public Player(int id) {
       super(id);
     }
 
-    private void assignStrategySame(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    private void assignStrategySame(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
     	
-    	for (Post outpost : outposts) {
+    	for (Outpost outpost : outposts) {
     		if (!outpost.isUpdated() && outpost.getStrategy() == strategyName) {
           		if (outpostsForStrategy.size() == max) {
     				outpost.setStrategy(null);
@@ -40,11 +40,11 @@ public class Player extends outpost.sim.Player {
     	}
     }
     
-    private void assignStrategyUnassigned(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    private void assignStrategyUnassigned(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
     	
-    	for (Post outpost : outposts) {
+    	for (Outpost outpost : outposts) {
     		if (!outpost.isUpdated() && outpost.getStrategy() == null && outpostsForStrategy.size() < max) {
     			outpostsForStrategy.add(outpost);
     			outpost.setStrategy(strategyName);
@@ -56,11 +56,11 @@ public class Player extends outpost.sim.Player {
     	}
     }
     
-    private void assignStrategySteal(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    private void assignStrategySteal(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
     	
-    	for (Post outpost : outposts) {
+    	for (Outpost outpost : outposts) {
     		if (!outpost.isUpdated() && outpostsForStrategy.size() < max) {
     			outpostsForStrategy.add(outpost);
     			outpost.setStrategy(strategyName);
@@ -73,14 +73,14 @@ public class Player extends outpost.sim.Player {
     	}
     }
     
-    private void assignStrategy(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    private void assignStrategy(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	assignStrategySame(outpostsForStrategy, strategyName, max);
     	assignStrategyUnassigned(outpostsForStrategy, strategyName, max);
     	assignStrategySteal(outpostsForStrategy, strategyName, max);
     }
     
-    private void markStrategyDone(ArrayList<Post> outpostsForStrategy) {
-    	for (Post outpost : outpostsForStrategy)
+    private void markStrategyDone(ArrayList<Outpost> outpostsForStrategy) {
+    	for (Outpost outpost : outpostsForStrategy)
     		if (outpost.getStrategy() == null)
     			outpost.setUpdated(false);
     }
@@ -96,13 +96,13 @@ public class Player extends outpost.sim.Player {
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
     	if (!isInitialized) {
     		board = new Board(id, simGrid, r, L, W, T);
-    		outposts = new ArrayList<Post>();
+    		outposts = new ArrayList<Outpost>();
     		nextOutpostId = 0;
     		isInitialized = true;
     	}
     	
     	// For each of our outposts in the list, find and update it in our persistent list, or add it if not
-    	for (Post outpost : outposts)
+    	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
     	
     	for (int i = 0; i < simOutpostList.get(id).size(); i++) {
@@ -111,7 +111,7 @@ public class Player extends outpost.sim.Player {
 			board.simFlip(loc);
 			
 			boolean existing = false;
-			for (Post outpost : outposts) {
+			for (Outpost outpost : outposts) {
 				if (!outpost.isUpdated() && Loc.equals(outpost.getExpectedLoc(), loc)) {
 					outpost.setCurrentLoc(loc);
 					outpost.setUpdated(true);
@@ -122,13 +122,13 @@ public class Player extends outpost.sim.Player {
 			}
 			
 			if (!existing) {
-				outposts.add(new Post(nextOutpostId, loc, i));
+				outposts.add(new Outpost(nextOutpostId, loc, i));
 				nextOutpostId++;
 			}
 		}
     	
     	for (int i = outposts.size() - 1; i >= 0; i--) {
-    		Post outpost = outposts.get(i);
+    		Outpost outpost = outposts.get(i);
     		
     		if (!outpost.isUpdated())
     			outposts.remove(i);
@@ -138,15 +138,15 @@ public class Player extends outpost.sim.Player {
     	board.update(simOutpostList);
     	
     	// Assign and run strategies on each outpost; use updated to indicate whether a strategy has been run on an outpost
-    	for (Post outpost : outposts)
+    	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
 
-    	ArrayList<Post> outpostsForStrategy;
+    	ArrayList<Outpost> outpostsForStrategy;
     	int targetNum;
     	
     	// Run resources gatherers
     	targetNum = 6;		// Replace with a calculation
-    	outpostsForStrategy = new ArrayList<Post>();
+    	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
     	Strategy getResources = new GetResources();
     	getResources.run(board, outpostsForStrategy);
@@ -154,7 +154,7 @@ public class Player extends outpost.sim.Player {
     	
     	// Run diagonal strategy
     	targetNum = outposts.size();		// Temporary hack to just assign the rest
-    	outpostsForStrategy = new ArrayList<Post>();
+    	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "diagonalWall", targetNum);
     	Strategy DiagonalStrategy = new DiagonalStrategy();
     	DiagonalStrategy.run(board, outpostsForStrategy);
@@ -164,7 +164,7 @@ public class Player extends outpost.sim.Player {
     	// Pass back to the simulator where we want our outposts to go
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
-    	for (Post outpost : outposts) {
+    	for (Outpost outpost : outposts) {
 			Loc currentLoc = outpost.getCurrentLoc();
 			Loc targetLoc = outpost.getTargetLoc();
 			

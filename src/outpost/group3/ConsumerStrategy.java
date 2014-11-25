@@ -2,7 +2,7 @@ package outpost.group3;
 
 import java.util.ArrayList;
 
-import outpost.group3.Post;
+import outpost.group3.Outpost;
 
 public class ConsumerStrategy extends outpost.group3.Strategy {
 
@@ -23,7 +23,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     this.r = radius;
   }
 
-  public void run(Board board, ArrayList<Post> outposts) {
+  public void run(Board board, ArrayList<Outpost> outposts) {
 	  /*
     ArrayList<Loc> targets = new ArrayList<Loc>();
 

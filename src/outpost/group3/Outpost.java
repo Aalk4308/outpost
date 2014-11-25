@@ -4,7 +4,7 @@ import java.util.*;
 
 import outpost.group3.Loc;
 
-public class Post {
+public class Outpost {
 	private int id;
 	private Loc currentLoc;
 	private Loc expectedLoc;
@@ -15,7 +15,7 @@ public class Post {
 	
 	public HashMap<String, Object> memory;
 	
-	Post(int id, Loc loc, int simIndex) {
+	Outpost(int id, Loc loc, int simIndex) {
 		this.id = id;
 		this.currentLoc = loc;
 		this.updated = true;

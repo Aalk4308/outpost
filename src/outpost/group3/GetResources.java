@@ -2,15 +2,15 @@ package outpost.group3;
 
 import java.util.ArrayList;
 
-import outpost.group3.Post;
+import outpost.group3.Outpost;
 
 public class GetResources extends outpost.group3.Strategy {
 	GetResources() {}
 	
-	public void run(Board board, ArrayList<Post> outposts) {
+	public void run(Board board, ArrayList<Outpost> outposts) {
 		ArrayList<Loc> targets = new ArrayList<Loc>();
 		
-		for (Post outpost : outposts) {
+		for (Outpost outpost : outposts) {
 			double bestVal = 0;
 			Loc currentLoc = outpost.getCurrentLoc();
 			Loc bestLoc = new Loc(currentLoc);
