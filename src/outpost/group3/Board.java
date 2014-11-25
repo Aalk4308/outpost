@@ -241,8 +241,12 @@ public class Board {
 		}
 	}
 	
-	private int getTicksRemaining() {
+	public int getTicksRemaining() {
 		return T - ticks;
+	}
+	
+	public int getTicksRemainingInSeason() {
+		return Consts.ticksPerSeason - (ticks % Consts.ticksPerSeason);
 	}
 	
 	public Loc getHomeCell(int id) {
