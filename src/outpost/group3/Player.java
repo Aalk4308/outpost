@@ -23,6 +23,66 @@ public class Player extends outpost.sim.Player {
       super(id);
     }
 
+    private void assignStrategySame(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    	if (outpostsForStrategy.size() >= max)
+    		return;
+    	
+    	for (Post outpost : outposts) {
+    		if (!outpost.isUpdated() && outpost.getStrategy() == strategyName) {
+          		if (outpostsForStrategy.size() == max) {
+    				outpost.setStrategy(null);
+          		} else {
+        			outpostsForStrategy.add(outpost);
+        			outpost.setUpdated(true);
+          		}
+    		}
+    	}
+    }
+    
+    private void assignStrategyUnassigned(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    	if (outpostsForStrategy.size() >= max)
+    		return;
+    	
+    	for (Post outpost : outposts) {
+    		if (!outpost.isUpdated() && outpost.getStrategy() == null && outpostsForStrategy.size() < max) {
+    			outpostsForStrategy.add(outpost);
+    			outpost.setStrategy(strategyName);
+    			outpost.setUpdated(true);
+    			
+    	    	if (outpostsForStrategy.size() >= max)
+    	    		break;
+    		}
+    	}
+    }
+    
+    private void assignStrategySteal(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    	if (outpostsForStrategy.size() >= max)
+    		return;
+    	
+    	for (Post outpost : outposts) {
+    		if (!outpost.isUpdated() && outpostsForStrategy.size() < max) {
+    			outpostsForStrategy.add(outpost);
+    			outpost.setStrategy(strategyName);
+    			outpost.setUpdated(true);
+    			
+    	    	if (outpostsForStrategy.size() >= max)
+    	    		break;
+    		}
+    	}
+    }
+    
+    private void assignStrategy(ArrayList<Post> outpostsForStrategy, String strategyName, int max) {
+    	assignStrategySame(outpostsForStrategy, strategyName, max);
+    	assignStrategyUnassigned(outpostsForStrategy, strategyName, max);
+    	assignStrategySteal(outpostsForStrategy, strategyName, max);
+    }
+    
+    private void markStrategyDone(ArrayList<Post> outpostsForStrategy) {
+    	for (Post outpost : outpostsForStrategy)
+    		if (outpost.getStrategy() == null)
+    			outpost.setUpdated(false);
+    }
+    
     public void init() {}
 
     public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
@@ -75,14 +135,24 @@ public class Player extends outpost.sim.Player {
     	// Update the board object
     	board.update(simOutpostList);
     	
+    	// Assign and run strategies on each outpost; use updated to indicate whether a strategy has been run on an outpost
+    	for (Post outpost : outposts)
+    		outpost.setUpdated(false);
+
+    	// Run resources gatherers
+    	int targetNumResourceGatherers = 2;		// Replace with a calculation
+    	ArrayList<Post> resourceGatherers = new ArrayList<Post>();
+    	assignStrategy(resourceGatherers, "resourceGatherer", targetNumResourceGatherers);
+    	Strategy gatherResources = new GetResources();
+    	gatherResources.run(board, resourceGatherers);
+    	markStrategyDone(resourceGatherers);
+    	
+    	
     	/* Here is where we would select a strategy based on the state of the board (resource scarcity, etc.) */
     	
     	//Strategy strategy = new DiagonalStrategy();
     	//targets = strategy.run(board);
     	
-    	// PASS ONLY LIVE OUTPOSTS HERE
-    	Strategy resources = new GetResources(); //call when resources are scarce
-    	resources.run(board, outposts);
     	
     	// Pass back to the simulator where we want our outposts to go
     	ArrayList<movePair> moves = new ArrayList<movePair>();
@@ -90,6 +160,10 @@ public class Player extends outpost.sim.Player {
     	for (Post outpost : outposts) {
 			Loc currentLoc = outpost.getCurrentLoc();
 			Loc targetLoc = outpost.getTargetLoc();
+			
+			if (targetLoc == null)
+				targetLoc = new Loc(currentLoc);
+			
     		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
     		
     		if (path == null || path.size() == 0 || path.size() == 1) {
@@ -103,21 +177,6 @@ public class Player extends outpost.sim.Player {
     			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
     		}
     	}
-    	
-    	/*
-    	for (int i = 0; i < targets.size(); i++) {
-    		Loc outpostLoc = board.ourOutposts().get(i);
-    		Loc targetLoc = targets.get(i);
-    		ArrayList<Loc> path = board.findPath(outpostLoc, targetLoc);
-    		
-    		if (path == null || path.size() == 0 || path.size() == 1)
-    			moves.add(new movePair(i, new Pair(outpostLoc.x, outpostLoc.y)));
-    		else {
-    			board.simFlip(path.get(1));
-    			moves.add(new movePair(i, new Pair(path.get(1).x, path.get(1).y)));
-    		}
-    	}
-    	*/
     	
     	return moves;
     }

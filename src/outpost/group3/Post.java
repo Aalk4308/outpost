@@ -9,12 +9,14 @@ public class Post {
 	private Loc targetLoc;
 	private boolean updated;
 	private int simIndex;
+	private String currentStrategy;
 	
 	Post(int id, Loc loc, int simIndex) {
 		this.id = id;
 		this.currentLoc = loc;
 		this.updated = true;
 		this.simIndex = simIndex;
+		this.currentStrategy = null;
 	}
 	
 	public int getId() {
@@ -59,5 +61,13 @@ public class Post {
 	
 	public void setUpdated(boolean updated) {
 		this.updated = updated;
+	}
+	
+	public String getStrategy() {
+		return currentStrategy;
+	}
+	
+	public void setStrategy(String strategy) {
+		this.currentStrategy = strategy;
 	}
 }
