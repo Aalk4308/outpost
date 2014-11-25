@@ -42,6 +42,7 @@ public class Board {
 	public int T;
 	
 	private int ticks;
+	private int numSupportableOutposts;
 	private Cell[][] cells;
 	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
@@ -91,13 +92,15 @@ public class Board {
 		}
 		
 		// Precompute number of land and water cells within r Manhattan distance of each cell
+		int numLandAccessible = 0;
+		int numWaterAccessible = 0;
+		
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
-				cells[x][y].setNearestLand(findNearestLand(x, y));
-				cells[x][y].setNearestWater(findNearestWater(x, y));
+				Cell cell = cells[x][y];
 				
-				if (x == 1 && y == 1)
-				System.out.printf("Nearest water to %d %d is %s\n", x, y, findNearestWater(x, y));
+				cell.setNearestLand(findNearestLand(x, y));
+				cell.setNearestWater(findNearestWater(x, y));
 				
 				int numLandCellsNearby = 0;
 				int numWaterCellsNearby = 0;
@@ -109,10 +112,17 @@ public class Board {
 						numWaterCellsNearby++;
 				}
 				
-				cells[x][y].setNumLandCellsNearby(numLandCellsNearby);
-				cells[x][y].setNumWaterCellsNearby(numWaterCellsNearby);
+				cell.setNumLandCellsNearby(numLandCellsNearby);
+				cell.setNumWaterCellsNearby(numWaterCellsNearby);
+				
+				if (cell.isLand())
+					numLandAccessible++;
+				else if (cell.isWater() && Loc.mDistance(cell.x,  cell.y, cell.getNearestLand()) <= r)
+					numWaterAccessible++;
 			}
 		}
+		
+		numSupportableOutposts = (int) Math.min((double) numLandAccessible / L, (double) numWaterAccessible / W) + Consts.numPlayers;
 		
 		// Precompute all shortest paths to home cells by BFS
 		for (int id = 0; id < Consts.numPlayers; id++) {
@@ -148,6 +158,7 @@ public class Board {
 		this.T = board.T;
 		
 		ticks = board.ticks;
+		numSupportableOutposts = board.numSupportableOutposts;
 		cells = new Cell[dimension][dimension];
 		landGrid = board.landGrid;
 		outposts = new ArrayList<ArrayList<Loc>>();
@@ -385,13 +396,17 @@ public class Board {
 		return outposts.get(id).size();
 	}
 	
+	public int numOutpostsSupportableTotal() {
+		return numSupportableOutposts;
+	}
+	
 	public int numOutpostsSupportableFor(int id) {
-		return (int) Math.min(playerSummaries.get(id).landCells / L, playerSummaries.get(id).waterCells / W) + 1;
+		return (int) Math.min((double) playerSummaries.get(id).landCells / L, (double) playerSummaries.get(id).waterCells / W) + 1;
 	}
 	
 	public int numOutpostsSupportableOn(int x, int y) {
 		Cell cell = cells[x][y];
-		return (int) Math.min(cell.getNumLandCellsNearby() / L, cell.getNumWaterCellsNearby() / W);
+		return (int) Math.min((double) cell.getNumLandCellsNearby() / L, (double) cell.getNumWaterCellsNearby() / W);
 	}
 	
 	public int numOutpostsSupportableOn(Loc l) {

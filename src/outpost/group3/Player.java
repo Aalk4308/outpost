@@ -137,6 +137,8 @@ public class Player extends outpost.sim.Player {
     	// Update the board object
     	board.update(simOutpostList);
     	
+    	System.out.printf("Total # supportable outposts: %d\n", board.numOutpostsSupportableTotal());
+    	
     	// Assign and run strategies on each outpost; use updated to indicate whether a strategy has been run on an outpost
     	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
