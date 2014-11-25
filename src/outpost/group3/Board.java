@@ -139,7 +139,7 @@ public class Board {
 				ArrayList<Loc> neighbors = getNearbyLocs(loc.x, loc.y, 1);
 				
 				for (Loc neighbor : neighbors) {
-					if (!visited[neighbor.x][neighbor.y]) {
+					if (!visited[neighbor.x][neighbor.y] && cells[neighbor.x][neighbor.y].isLand()) {
 						queue.add(neighbor);
 						visited[neighbor.x][neighbor.y] = true;
 						cells[neighbor.x][neighbor.y].setPathDistanceToHome(id, cells[loc.x][loc.y].getPathDistanceToHome(id) + 1);
