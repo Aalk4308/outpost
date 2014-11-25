@@ -396,6 +396,15 @@ public class Board {
 		return playerSummaries.get(id).totalCells;
 	}
 	
+	public int numOutpostsTotal() {
+		int sum = 0;
+		
+		for (int id = 0; id < Consts.numPlayers; id++)
+			sum += numOutpostsFor(id);
+		
+		return sum;
+	}
+	
 	public int numOutpostsFor(int id) {
 		return outposts.get(id).size();
 	}

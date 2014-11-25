@@ -19,6 +19,11 @@ public class GetResources extends outpost.group3.Strategy {
 		ArrayList<Loc> targets = new ArrayList<Loc>();
 		int ticksRemainingInSeason = board.getTicksRemainingInSeason();
 		
+		// The fraction of the board we try to capture resources from is larger if we sense that we are farther ahead in the game (have move outposts)
+		// Minimum we look at is our quarter (if we have <= average # of outposts)
+		// Maximum we look at is entire board (if we have all outposts)
+		double dimensionFactor = Math.max(0.5, Math.sqrt((double) board.numOutpostsFor(board.playerId) / (double) board.numOutpostsTotal()));
+		
 		for (Outpost outpost : outposts) {
 			Loc currentLoc = outpost.getCurrentLoc();
 			Cell currentCell = board.getCell(currentLoc);
@@ -27,8 +32,8 @@ public class GetResources extends outpost.group3.Strategy {
 						
 			// First, target the farthest cell (based on path distance) from the home cell that the outpost can reach before the season ends, supports as many or more than the cell it was last targeting, and does not overlap with targets already assigned to other outposts
 			bestDist = 0;
-			for (int x = 0; x < Board.dimension / 2; x++) {
-				for (int y = 0; y < Board.dimension / 2; y++) {
+			for (int x = 0; x < Board.dimension * dimensionFactor; x++) {
+				for (int y = 0; y < Board.dimension * dimensionFactor; y++) {
 					Loc loc = new Loc(x, y);
 					Cell cell = board.getCell(loc);
 					
@@ -70,8 +75,8 @@ public class GetResources extends outpost.group3.Strategy {
 			
 			// Otherwise, find the nearest one from the current location (based on path distance) that supports at least a full outpost
 			bestDist = Integer.MAX_VALUE;
-			for (int x = 0; x < Board.dimension / 2; x++) {
-				for (int y = 0; y < Board.dimension / 2; y++) {
+			for (int x = 0; x < Board.dimension * dimensionFactor; x++) {
+				for (int y = 0; y < Board.dimension * dimensionFactor; y++) {
 					Loc loc = new Loc(x, y);
 					Cell cell = board.getCell(loc);
 					
