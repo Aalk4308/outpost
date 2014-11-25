@@ -66,8 +66,8 @@ public class GetResources extends outpost.group3.Strategy {
 				continue;
 			}
 			
-			// If no such cell was found and the current one supports some, stay, put
-			if (board.numOutpostsSupportableOn(currentLoc) >= 1) {
+			// If no such cell was found and the current one supports some and is not overlapping, stay, put
+			if (board.numOutpostsSupportableOn(currentLoc) >= 1 && !overlaps(board, currentLoc, targets)) {
 				targets.add(currentLoc);
 				outpost.setTargetLoc(currentLoc);
 				continue;
@@ -105,7 +105,7 @@ public class GetResources extends outpost.group3.Strategy {
 			}
 			
 			// If we had a previous target, use that
-			if (outpost.getTargetLoc() != null) {
+			if (outpost.getTargetLoc() != null && !overlaps(board, outpost.getTargetLoc(), targets)) {
 				targets.add(outpost.getTargetLoc());
 				continue;
 			}
