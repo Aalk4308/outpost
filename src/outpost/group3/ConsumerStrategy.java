@@ -144,6 +144,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     Loc closest = new Loc();
 
     int soldier = 0; 
+    int secondarySold = 0; 
     enemyDist = 100;
     for (int i = 0; i < 4; i++){
       System.out.println("Distance for outpost " + i + " is " + outposts.get(i).distance(centerTarget));
@@ -151,57 +152,47 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         System.out.println("Outpost " + i + " is closer at location " + outposts.get(i));
         closest = outposts.get(i);
         enemyDist = outposts.get(i).distance(centerTarget);
+        secondarySold = soldier;
         soldier = i;
       }
     }
 
 
     Loc nextMove = new Loc();
+    //TODO: If the soldier direction would put us on water, use secondary soldier direction
     switch(soldier){
       case NORTH: nextMove = board.nearestLand(new Loc(centerTarget.x,centerTarget.y + r));
+                  consCenter = new Loc(consCenter.x, consCenter.y + 1);
                   System.out.println("We're moving north");
+                  for (int i = 0; i < 4; i ++){
+                    consumer[i] = board.nearestLand(new Loc(outposts.get(i).x,outposts.get(i).y + 1));
+                  }
                   break;
       case SOUTH: nextMove = board.nearestLand(new Loc(centerTarget.x,centerTarget.y - r));
+                  consCenter = new Loc(consCenter.x, consCenter.y - 1);
+                  for (int i = 0; i < 4; i ++){
+                    consumer[i] = board.nearestLand(new Loc(outposts.get(i).x,outposts.get(i).y - 1));
+                  }
                   System.out.println("We're moving south");
                   break;
       case EAST: nextMove = board.nearestLand(new Loc(centerTarget.x + r,centerTarget.y));
+                  consCenter = new Loc(consCenter.x + 1, consCenter.y );
+                  for (int i = 0; i < 4; i ++){
+                    consumer[i] = board.nearestLand(new Loc(outposts.get(i).x + 1,outposts.get(i).y));
+                  }
                   System.out.println("We're moving east");
                   break;
       case WEST: nextMove = board.nearestLand(new Loc(centerTarget.x - r,centerTarget.y));
+                  consCenter = new Loc(consCenter.x - 1, consCenter.y);
+                  for (int i = 0; i < 4; i ++){
+                    consumer[i] = board.nearestLand(new Loc(outposts.get(i).x - 1,outposts.get(i).y));
+                  }
                   System.out.println("We're moving west");
                   break;
     }
 
     ArrayList<Loc> path = board.findPath(closest,nextMove);
 
-    if (path.size() > 1){
-      nextMove = board.findPath(closest,nextMove).get(1);
-      System.out.println("Next move of closest soldier is " + nextMove);
-
-      //Get the next move of the closest soldier in our formation
-
-      for (int i = 0; i < 4; i ++){
-        if (nextMove.equals(new Loc(closest.x,closest.y + 1))){
-            consumer[i] = board.nearestLand(new Loc(outposts.get(i).x,outposts.get(i).y + 1));
-          }
-        if (nextMove.equals(new Loc(closest.x,closest.y - 1))){
-            consumer[i] = board.nearestLand(new Loc(outposts.get(i).x,outposts.get(i).y - 1));
-          }
-        if (nextMove.equals(new Loc(closest.x + 1,closest.y))){
-            consumer[i] = board.nearestLand(new Loc(outposts.get(i).x + 1,outposts.get(i).y));
-          }
-        if (nextMove.equals(new Loc(closest.x - 1,closest.y))){
-            consumer[i] = board.nearestLand(new Loc(outposts.get(i).x - 1,outposts.get(i).y));
-        }
-        if (consumer[i].equals(outposts.get(i)))
-          consumer[i] = nextMove;
-      }
-
-    }
-    else{
-      for (int i = 0; i < 4; i++)
-        consumer[i] = board.nearestLand(idealTargets[i]);
-    }
 
     System.out.println("New positions are ");
 
