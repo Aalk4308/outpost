@@ -1,5 +1,7 @@
 package outpost.group3;
 
+import java.util.*;
+
 import outpost.group3.Loc;
 
 public class Post {
@@ -11,12 +13,15 @@ public class Post {
 	private int simIndex;
 	private String currentStrategy;
 	
+	public HashMap<String, Object> memory;
+	
 	Post(int id, Loc loc, int simIndex) {
 		this.id = id;
 		this.currentLoc = loc;
 		this.updated = true;
 		this.simIndex = simIndex;
 		this.currentStrategy = null;
+		this.memory = new HashMap<String, Object>();
 	}
 	
 	public int getId() {
