@@ -144,6 +144,17 @@ public class Player extends outpost.sim.Player {
     	ArrayList<Outpost> outpostsForStrategy;
     	int targetNum;
     	
+    	// Run protect home strategy (It requires at the least 3 outposts to be generated on the board)
+    	if(outposts.size()>=3){	
+    	targetNum = 3;		
+    	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "protectHome", targetNum);
+    	Strategy protectHome = new ProtectHome();
+    	protectHome.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	}
+    
+    	
     	// Run resources gatherers
     	targetNum = 6;		// Replace with a calculation
     	outpostsForStrategy = new ArrayList<Outpost>();
@@ -151,6 +162,8 @@ public class Player extends outpost.sim.Player {
     	Strategy getResources = new GetResources();
     	getResources.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
+    	
+    
     	
     	// Run diagonal strategy
     	targetNum = outposts.size();		// Temporary hack to just assign the rest
