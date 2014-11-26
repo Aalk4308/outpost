@@ -161,6 +161,16 @@ public class Player extends outpost.sim.Player {
     	markStrategyDone(outpostsForStrategy);
     	
     	
+    	// Run AttacK Enemy strategy
+    	if(((outposts.size()-1)* board.W)*2 < board.numWaterCellsFor(board.playerId) ){  //should do this only if we have outposts to spare
+    	targetNum = 3;		
+    	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "attackEnemy", targetNum);
+    	Strategy attackEnemy = new AttackEnemy();
+    	attackEnemy.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	}
+    	
     	// Pass back to the simulator where we want our outposts to go
     	ArrayList<movePair> moves = new ArrayList<movePair>();
     	
