@@ -169,6 +169,14 @@ public class Player extends outpost.sim.Player {
     	getResources.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
     	
+    	// Run protect home strategy (It requires at the least 3 outposts to be generated on the board)
+    	targetNum = 3;
+    	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "protectHome", targetNum);
+    	Strategy protectHome = new ProtectHome();
+    	protectHome.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	
     	// Run consumer
         targetNum = 4;		// Just working with one consumer
         outpostsForStrategy = new ArrayList<Outpost>();
