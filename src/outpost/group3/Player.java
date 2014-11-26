@@ -23,6 +23,16 @@ public class Player extends outpost.sim.Player {
       super(id);
     }
 
+    private ArrayList<Outpost> getOutpostsWithStrategy(String strategyName) {
+    	ArrayList<Outpost> outpostList = new ArrayList<Outpost>();
+    	
+    	for (Outpost outpost : outposts)
+    		if (outpost.getStrategy() == strategyName)
+    			outpostList.add(outpost);
+    	
+    	return outpostList;
+    }
+    
     private void assignStrategySame(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
@@ -151,8 +161,10 @@ public class Player extends outpost.sim.Player {
     	int targetNum;
     	
     	// Run resources gatherers
-    	targetNum = 999;		// Replace with a calculation
-    	outpostsForStrategy = new ArrayList<Outpost>();
+    	int minTarget = 5;
+    	targetNum = Math.max(minTarget, (int) ((board.ourOutposts().size() + 1) / board.avgSupportPerCell()));
+    	
+       	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
     	Strategy getResources = new GetResources();
     	getResources.run(board, outpostsForStrategy);

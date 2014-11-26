@@ -43,6 +43,7 @@ public class Board {
 	
 	private int ticks;
 	private int numSupportableOutposts;
+	private double avgSupportableOutpostsPerCellWithSupport;
 	private Cell[][] cells;
 	private boolean landGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
@@ -94,6 +95,8 @@ public class Board {
 		// Precompute number of land and water cells within r Manhattan distance of each cell
 		int numLandAccessible = 0;
 		int numWaterAccessible = 0;
+		int totalSupportFromCellsWithSupport = 0;
+		int numCellsWithSupport = 0;
 		
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
@@ -115,6 +118,11 @@ public class Board {
 				cell.setNumLandCellsNearby(numLandCellsNearby);
 				cell.setNumWaterCellsNearby(numWaterCellsNearby);
 				
+				if (numOutpostsSupportableOn(x, y) > 0) {
+					totalSupportFromCellsWithSupport += numOutpostsSupportableOn(x, y); 
+					numCellsWithSupport++;
+				}
+				
 				if (cell.isLand())
 					numLandAccessible++;
 				else if (cell.isWater() && Loc.mDistance(cell.x,  cell.y, cell.getNearestLand()) <= r)
@@ -123,6 +131,7 @@ public class Board {
 		}
 		
 		numSupportableOutposts = (int) Math.min((double) numLandAccessible / L, (double) numWaterAccessible / W) + Consts.numPlayers;
+		avgSupportableOutpostsPerCellWithSupport = (double) totalSupportFromCellsWithSupport / (double) numCellsWithSupport;
 		
 		// Precompute all shortest paths to home cells by BFS
 		for (int id = 0; id < Consts.numPlayers; id++) {
@@ -159,6 +168,7 @@ public class Board {
 		
 		ticks = board.ticks;
 		numSupportableOutposts = board.numSupportableOutposts;
+		avgSupportableOutpostsPerCellWithSupport = board.avgSupportableOutpostsPerCellWithSupport; 
 		cells = new Cell[dimension][dimension];
 		landGrid = board.landGrid;
 		outposts = new ArrayList<ArrayList<Loc>>();
@@ -424,6 +434,10 @@ public class Board {
 	
 	public int numOutpostsSupportableOn(Loc l) {
 		return numOutpostsSupportableOn(l.x, l.y);
+	}
+	
+	public double avgSupportPerCell() {
+		return avgSupportableOutpostsPerCellWithSupport;
 	}
 	
 	public static class DumpInfo {
