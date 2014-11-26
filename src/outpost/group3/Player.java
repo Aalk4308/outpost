@@ -185,6 +185,14 @@ public class Player extends outpost.sim.Player {
         ConsumerStrategy.run(board, outpostsForStrategy);
         markStrategyDone(outpostsForStrategy);
     	
+    	// Run attack Enemy strategy
+    	targetNum = 3;		
+    	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "attackEnemy", targetNum);
+    	Strategy attackEnemy = new AttackEnemy();
+    	attackEnemy.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	
         // Set any remaining to gatherers
         targetNum = outposts.size();
        	outpostsForStrategy = new ArrayList<Outpost>();
