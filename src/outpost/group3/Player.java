@@ -9,20 +9,29 @@ import outpost.group3.Board;
 import outpost.group3.Outpost;
 
 public class Player extends outpost.sim.Player {
+	static int size = 100;
+	static Random random = new Random();
 
-    static int size = 100;
-    static Random random = new Random();
+	private boolean isInitialized = false;
+	private Board board;
 
-    private boolean isInitialized = false;
-    private Board board;
-    
-    ArrayList<Outpost> outposts;
-    int nextOutpostId;
-    
-    public Player(int id) {
-      super(id);
+	ArrayList<Outpost> outposts;
+	int nextOutpostId;
+
+	public Player(int id) {
+		super(id);
+	}
+
+    private ArrayList<Outpost> getOutpostsWithStrategy(String strategyName) {
+    	ArrayList<Outpost> outpostList = new ArrayList<Outpost>();
+    	
+    	for (Outpost outpost : outposts)
+    		if (outpost.getStrategy() == strategyName)
+    			outpostList.add(outpost);
+    	
+    	return outpostList;
     }
-
+    
     private void assignStrategySame(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
@@ -31,6 +40,7 @@ public class Player extends outpost.sim.Player {
     		if (!outpost.isUpdated() && outpost.getStrategy() == strategyName) {
           		if (outpostsForStrategy.size() == max) {
     				outpost.setStrategy(null);
+    				outpost.setTargetLoc(null);
     				outpost.memory.clear();
           		} else {
         			outpostsForStrategy.add(outpost);
@@ -39,23 +49,23 @@ public class Player extends outpost.sim.Player {
     		}
     	}
     }
-    
+
     private void assignStrategyUnassigned(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
-    	if (outpostsForStrategy.size() >= max)
-    		return;
-    	
-    	for (Outpost outpost : outposts) {
-    		if (!outpost.isUpdated() && outpost.getStrategy() == null && outpostsForStrategy.size() < max) {
-    			outpostsForStrategy.add(outpost);
-    			outpost.setStrategy(strategyName);
-    			outpost.setUpdated(true);
-    			
-    	    	if (outpostsForStrategy.size() >= max)
-    	    		break;
-    		}
-    	}
-    }
-    
+		if (outpostsForStrategy.size() >= max)
+			return;
+		
+		for (Outpost outpost : outposts) {
+			if (!outpost.isUpdated() && outpost.getStrategy() == null && outpostsForStrategy.size() < max) {
+				outpostsForStrategy.add(outpost);
+				outpost.setStrategy(strategyName);
+				outpost.setUpdated(true);
+		
+				if (outpostsForStrategy.size() >= max)
+					break;
+			}
+		}
+	}
+  
     private void assignStrategySteal(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
     	if (outpostsForStrategy.size() >= max)
     		return;
@@ -64,6 +74,7 @@ public class Player extends outpost.sim.Player {
     		if (!outpost.isUpdated() && outpostsForStrategy.size() < max) {
     			outpostsForStrategy.add(outpost);
     			outpost.setStrategy(strategyName);
+				outpost.setTargetLoc(null);
     			outpost.memory.clear();
     			outpost.setUpdated(true);
     			
@@ -71,27 +82,31 @@ public class Player extends outpost.sim.Player {
     	    		break;
     		}
     	}
-    }
-    
-    private void assignStrategy(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
-    	assignStrategySame(outpostsForStrategy, strategyName, max);
-    	assignStrategyUnassigned(outpostsForStrategy, strategyName, max);
-    	assignStrategySteal(outpostsForStrategy, strategyName, max);
-    }
-    
-    private void markStrategyDone(ArrayList<Outpost> outpostsForStrategy) {
-    	for (Outpost outpost : outpostsForStrategy)
-    		if (outpost.getStrategy() == null)
-    			outpost.setUpdated(false);
-    }
-    
-    public void init() {}
+	}
 
-    public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
-      //System.out.printf("haha, we are trying to delete a outpost for player %d\n", this.id);
-      int del = random.nextInt(king_outpostlist.get(id).size());
-      return del;
+	private void assignStrategy(ArrayList<Outpost> outpostsForStrategy, String strategyName, int max) {
+		assignStrategySame(outpostsForStrategy, strategyName, max);
+		assignStrategyUnassigned(outpostsForStrategy, strategyName, max);
+		assignStrategySteal(outpostsForStrategy, strategyName, max);
+	}
+	
+    private void markStrategyDone(ArrayList<Outpost> outpostsForStrategy) {
+    	for (Outpost outpost : outpostsForStrategy) {
+    		if (outpost.getStrategy() == null) {
+    			outpost.memory.clear();
+    			outpost.setTargetLoc(null);
+    			outpost.setUpdated(false);
+    		}
+    	}
     }
+
+	public void init() {}
+
+	public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
+		//System.out.printf("haha, we are trying to delete a outpost for player %d\n", this.id);
+		int del = random.nextInt(king_outpostlist.get(id).size());
+		return del;
+	}
 
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
     	if (!isInitialized) {
@@ -136,7 +151,7 @@ public class Player extends outpost.sim.Player {
     	
     	// Update the board object
     	board.update(simOutpostList);
-    	
+    	    	
     	// Assign and run strategies on each outpost; use updated to indicate whether a strategy has been run on an outpost
     	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
@@ -145,13 +160,40 @@ public class Player extends outpost.sim.Player {
     	int targetNum;
     	
     	// Run resources gatherers
-    	targetNum = 6;		// Replace with a calculation
-    	outpostsForStrategy = new ArrayList<Outpost>();
+    	int minTarget = 5;
+    	targetNum = Math.max(minTarget, (int) ((board.ourOutposts().size() + 1) / board.avgSupportPerCell()));
+    	
+       	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
     	Strategy getResources = new GetResources();
     	getResources.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
     	
+    	// Run protect home strategy (It requires at the least 3 outposts to be generated on the board)
+    	targetNum = 3;
+    	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "protectHome", targetNum);
+    	Strategy protectHome = new ProtectHome();
+    	protectHome.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	
+    	// Run consumer
+        targetNum = 4;		// Just working with one consumer
+        outpostsForStrategy = new ArrayList<Outpost>();
+        assignStrategy(outpostsForStrategy, "consumer", targetNum);
+        Strategy ConsumerStrategy = new ConsumerStrategy(r);
+        ConsumerStrategy.run(board, outpostsForStrategy);
+        markStrategyDone(outpostsForStrategy);
+    	
+        // Set any remaining to gatherers
+        targetNum = outposts.size();
+       	outpostsForStrategy = new ArrayList<Outpost>();
+    	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
+    	Strategy getResourcesFill = new GetResources();
+    	getResourcesFill.run(board, outpostsForStrategy);
+    	markStrategyDone(outpostsForStrategy);
+    	
+    	/*
     	// Run diagonal strategy
     	targetNum = outposts.size();		// Temporary hack to just assign the rest
     	outpostsForStrategy = new ArrayList<Outpost>();
@@ -159,7 +201,7 @@ public class Player extends outpost.sim.Player {
     	Strategy DiagonalStrategy = new DiagonalStrategy();
     	DiagonalStrategy.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
-    	
+    	*/
     	
     	// Run AttacK Enemy strategy
     	if(((outposts.size()-1)* board.W)*2 < board.numWaterCellsFor(board.playerId) ){  //should do this only if we have outposts to spare
