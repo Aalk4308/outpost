@@ -84,6 +84,10 @@ public class Cell {
 		return cellOwnerDistance;
 	}
 	
+	public boolean isPassableFor(int id) {
+		return isLand() && (isNeutral() || (isOwned() && getOwnerId() == id));
+	}
+	
 	public void setNeutral() {
 		this.cellState = CellState.NEUTRAL;
 		this.cellOwnerId = -1;

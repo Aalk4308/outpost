@@ -268,6 +268,39 @@ public class Board {
 		update(outpostList);
 	}
 	
+	// Returns indexes of outposts that would be disbanded on this board for the given player id
+	public ArrayList<Integer> outpostsToDisband(int id) {
+		ArrayList<Integer> outpostList = new ArrayList<Integer>();
+		
+		Loc home = getHomeCell(id);
+		LinkedList<Loc> queue = new LinkedList<Loc>();
+		boolean[][] visited = new boolean[dimension][dimension];
+		
+		queue.add(home);
+		visited[home.x][home.y] = true;
+		
+		while (!queue.isEmpty()) {
+			Loc loc = queue.poll();
+			ArrayList<Loc> neighbors = getNearbyLocs(loc.x, loc.y, 1);
+			
+			for (Loc neighbor : neighbors) {
+				if (!visited[neighbor.x][neighbor.y] && cells[neighbor.x][neighbor.y].isPassableFor(id)) {
+					queue.add(neighbor);
+					visited[neighbor.x][neighbor.y] = true;
+				}
+			}
+		}
+		
+		for (int i = 0; i < outposts.get(id).size(); i++) {
+			Loc loc = outposts.get(id).get(i);
+			
+			if (!visited[loc.x][loc.y])
+				outpostList.add(new Integer(i));
+		}
+		
+		return outpostList;
+	}
+	
 	public int getTicksRemaining() {
 		return T - ticks;
 	}
