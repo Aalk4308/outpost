@@ -58,7 +58,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
               consumer.add(outpost);
           }
           if (consumer.size() < 4){
-            //Need to dole outposts to next consumer
+            //Need to dole execess outposts to next consumer
             int components = consumer.size();
             for (Outpost outpost : outposts){
               if (outpost.memory.get("formation") == null){
@@ -69,7 +69,6 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
                 break;
             }
           }
-          System.out.println("Formation " + i + " is going to run with " + consumer.size() + " outposts");
           runConsumer(i,board,consumer);
           consumer.clear();
         }
@@ -114,7 +113,6 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     switch (states.get(formationNum)){
 
       case ASSIGN:
-        System.out.println("Formation " + formationNum + " in ASSIGN state");
 
         int numOutposts = outposts.size();
 
@@ -153,12 +151,10 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         states.set(formationNum,State.BUILD);
 
       case BUILD: 
-        System.out.println("Formation " + formationNum + " in BUILD state");
         buildMove(formationNum,outposts,board);
         break;
 
       case ATTACK: 
-        System.out.println("Formation " + formationNum + " in ATTACK state");
         attackMove(formationNum,outposts,board);
         break;
 
@@ -170,8 +166,21 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   private void buildMove(int formationNum, ArrayList<Outpost> outposts, Board board){
     int numInPosition = 0;
 
+    //Set largest spacing between components that leads to a water-less consumer
+    for (int i = 0; i < r; i ++){
+      Loc spot = consCenters.get(formationNum);
+      if (board.getCell(new Loc(spot.x + i, spot.y)).isWater()
+          || board.getCell(new Loc(spot.x - i, spot.y)).isWater()
+          || board.getCell(new Loc(spot.x, spot.y + i)).isWater()
+          || board.getCell(new Loc(spot.x, spot.y - i)).isWater()){
+          System.out.println("Building with " + i + " space for formation " + formationNum);
+          setFormationLocs(outposts,consCenters.get(formationNum),board,i);
+          break;
+      }
+      else if ( i == r-1)
+        setFormationLocs(outposts,consCenters.get(formationNum),board,r);
+    }
     //set the target locations
-    setFormationLocs(outposts,consCenters.get(formationNum),board);
 
     //Are we in formation?
     for (Outpost outpost : outposts){
@@ -206,6 +215,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     }
 
     if (!outOfFormation.isEmpty()){
+      System.out.println("Moving to build");
       //If both coordinates of an outpost's location are incorrect
       //with respect to its formation assignment, we need to rebuild
       states.set(formationNum,State.BUILD);
@@ -218,6 +228,8 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         if (enemyOutposts == board.ourOutposts())
           continue;
         for (Loc outpost : enemyOutposts){
+          outpost.x++;
+          outpost.y++;
           double tempDist = outpost.distance(consCenters.get(formationNum));
           if (tempDist < enemyDist){
             enemyDist = tempDist;
@@ -238,6 +250,10 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       }
 
       //Update expected positions for next turn and move the center of our formation
+
+      //TODO: Check if the next move for any component (based on findPath)
+      //is not in the direction we desire. If only one component moves in a "wrong" direction,
+      //move all components in that direction.
       int newCenterx = consCenters.get(formationNum).x;
       int newCentery = consCenters.get(formationNum).y;
       if(closest.equals("north")){
@@ -260,21 +276,21 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       //Set new formation center
       consCenters.set(formationNum,new Loc(newCenterx, newCentery));
 
-      setFormationLocs(outposts,consCenters.get(formationNum),board);
+      setFormationLocs(outposts,consCenters.get(formationNum),board,r);
     }
   }
 
   //Given the center of a formation, assign the consumer outposts to their associated positions
-  private void setFormationLocs(ArrayList<Outpost> outposts, Loc formationCenter, Board board){
+  private void setFormationLocs(ArrayList<Outpost> outposts, Loc formationCenter, Board board, int space){
     for (Outpost outpost : outposts){
       if(outpost.memory.get("role").equals("north"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y + r)));
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y + space)));
       else if(outpost.memory.get("role").equals("south"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y - r)));
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y - space)));
       else if(outpost.memory.get("role").equals("east"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x + r,formationCenter.y)));
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x + space,formationCenter.y)));
       else if(outpost.memory.get("role").equals("west"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x - r,formationCenter.y)));
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x - space,formationCenter.y)));
     }
   }
 
