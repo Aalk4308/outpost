@@ -222,9 +222,9 @@ public class Board {
 				for (int id = 0; id < Consts.numPlayers; id++) {
 					for (Loc loc : outposts.get(id)) {
 						double d = Loc.mDistance(x, y, loc);
-						if (d < r && d == cell.getOwnerDistance() && id != cell.getOwnerId()) {
+						if (d <= r && d == cell.getOwnerDistance() && id != cell.getOwnerId()) {
 							cell.setDisputed();
-						} else if (d < r && d < cell.getOwnerDistance()) {
+						} else if (d <= r && d < cell.getOwnerDistance()) {
 							cell.setOwned(id, d);
 						}
 					}
@@ -399,9 +399,22 @@ public class Board {
 		return outposts.get(playerId);
 	}
 
-        public ArrayList<Loc> theirOutposts(int id){
-                return outposts.get(id);
-        }
+	public ArrayList<Loc> theirOutposts(int id) {
+		return outposts.get(id);
+	}
+	
+	public ArrayList<ArrayList<Loc>> allOutposts() {
+		ArrayList<ArrayList<Loc>> allOutposts = new ArrayList<ArrayList<Loc>>();
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			allOutposts.add(new ArrayList<Loc>());
+			
+			for (int j = 0; j < outposts.get(id).size(); j++)
+				allOutposts.get(id).add(new Loc(outposts.get(id).get(j)));
+		}
+		
+		return allOutposts;
+	}
 	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
