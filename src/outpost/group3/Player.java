@@ -186,17 +186,17 @@ public class Player extends outpost.sim.Player {
         markStrategyDone(outpostsForStrategy);
     	
     	// Run attack Enemy strategy
-    	targetNum = 3;		
+    	targetNum = 3;
     	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "attackEnemy", targetNum);
     	Strategy attackEnemy = new AttackEnemy();
     	attackEnemy.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
     	
-        // Set any remaining to gatherers
+        // Set any remaining unassigned to gatherers (no stealing)
         targetNum = outposts.size();
        	outpostsForStrategy = new ArrayList<Outpost>();
-    	assignStrategy(outpostsForStrategy, "resourceGatherer", targetNum);
+    	assignStrategyUnassigned(outpostsForStrategy, "resourceGatherer", targetNum);
     	Strategy getResourcesFill = new GetResources();
     	getResourcesFill.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
