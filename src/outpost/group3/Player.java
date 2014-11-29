@@ -182,6 +182,8 @@ public class Player extends outpost.sim.Player {
     		isInitialized = true;
     	}
     	
+    	long startTime = System.currentTimeMillis();
+    	
     	// For each of our outposts in the list, find and update it in our persistent list, or add it if not
     	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
@@ -310,6 +312,8 @@ public class Player extends outpost.sim.Player {
     			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
     		}
     	}
+    	
+    	System.out.printf("[GROUP3][LOG] Elapsed: %d\n", System.currentTimeMillis() - startTime);
     	
     	return moves;
     }
