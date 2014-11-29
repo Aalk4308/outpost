@@ -99,6 +99,72 @@ public class Player extends outpost.sim.Player {
     		}
     	}
     }
+    
+    // type 0 = stay the same; type 1 = move up; type 2 = move left; type 3 = move up/left whichever is greater 
+    private Board getBoardAfterOpponentMove(Board board, int type) {
+    	Board boardAfterOpponentMoves = new Board(board);
+    	
+    	ArrayList<ArrayList<Loc>> allOutposts = boardAfterOpponentMoves.allOutposts();
+    	
+    	for (int opponentId = 0; opponentId < Consts.numPlayers; opponentId++) {
+    		if (opponentId == id)
+    			continue;
+    		
+    		ArrayList<Loc> opponentOutposts = allOutposts.get(opponentId);
+    		
+    		for (int j = 0; j < opponentOutposts.size(); j++) {
+    			Loc loc = opponentOutposts.get(j);
+    			
+    			if (type == 1 || (type == 3 && loc.x > loc.y))
+    				loc.x = Math.max(0, loc.x - 1);
+    			else if (type == 2 || (type == 3 && loc.x <= loc.y))
+    				loc.y = Math.max(0, loc.y - 1);
+    		}
+    	}
+    	
+    	boardAfterOpponentMoves.update(allOutposts);
+    	
+    	return boardAfterOpponentMoves;
+    }
+    
+    private ArrayList<Integer> outpostsToAdjustTactically() {
+    	// First, construct a new board as if we played all our moves
+    	Board boardAfterOurMoves = new Board(board);
+    	
+    	ArrayList<ArrayList<Loc>> allOutposts = boardAfterOurMoves.allOutposts();
+    	
+    	for (Outpost outpost : outposts) {
+			Loc currentLoc = outpost.getCurrentLoc();
+			Loc targetLoc = outpost.getTargetLoc();
+			
+			if (targetLoc == null)
+				targetLoc = new Loc(currentLoc);
+			
+    		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
+    		
+    		if (path == null || path.size() == 0 || path.size() == 1) {
+    			Loc loc = allOutposts.get(id).get(outpost.getSimIndex());
+    			loc.x = currentLoc.x;
+    			loc.y = currentLoc.y;
+    		} else {
+    			Loc loc = allOutposts.get(id).get(outpost.getSimIndex());
+    			loc.x = path.get(1).x;
+    			loc.y = path.get(1).y;
+    		}
+    	}
+    	
+    	boardAfterOurMoves.update(allOutposts);
+    	
+    	// Consider four cases of how enemies might move: stay the same, move up, move left, or move whichever is more distant
+    	ArrayList<Integer> disbandedOutposts = new ArrayList<Integer>();	// List of simIds of outposts that will be disbanded.  May contain duplicates, but that will not matter
+    	
+    	for (int i = 0; i < 4; i++) {
+    		Board boardAfterOpponentMove = getBoardAfterOpponentMove(boardAfterOurMoves, i);
+        	disbandedOutposts.addAll(boardAfterOpponentMove.outpostsToDisband(id));
+    	}
+    	
+    	return disbandedOutposts;
+    }
 
 	public void init() {}
 
@@ -201,32 +267,6 @@ public class Player extends outpost.sim.Player {
     	getResourcesFill.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
     	
-    	// Adjust moves to avoid fruitless, suicidal moves
-    	// First, construct a new board as if we played all our moves
-    	//Board newBoard = new Board(board);
-    	/*
-    	for (Outpost outpost : outposts) {
-			Loc currentLoc = outpost.getCurrentLoc();
-			Loc targetLoc = outpost.getTargetLoc();
-			
-			if (targetLoc == null)
-				targetLoc = new Loc(currentLoc);
-			
-    		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
-    		
-    		if (path == null || path.size() == 0 || path.size() == 1) {
-    			outpost.setExpectedLoc(new Loc(currentLoc));
-    			board.simFlip(currentLoc);
-    			moves.add(new movePair(outpost.getSimIndex(), new Pair(currentLoc.x, currentLoc.y)));
-    		} else {
-    			outpost.setExpectedLoc(new Loc(path.get(1)));
-    			Loc expectedLoc = path.get(1);
-    			board.simFlip(expectedLoc);
-    			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
-    		}
-    	}
-    	*/
-    	
     	/*
     	// Run diagonal strategy
     	targetNum = outposts.size();		// Temporary hack to just assign the rest
@@ -237,15 +277,25 @@ public class Player extends outpost.sim.Player {
     	markStrategyDone(outpostsForStrategy);
     	*/
     	
+    	// Adjust moves to avoid fruitless, suicidal moves
+    	ArrayList<Integer> outpostsToAdjust = outpostsToAdjustTactically();
+    	
     	// Pass back to the simulator where we want our outposts to go
     	ArrayList<movePair> moves = new ArrayList<movePair>();
+    	Loc homeCell = board.getHomeCell(id);
     	
     	for (Outpost outpost : outposts) {
 			Loc currentLoc = outpost.getCurrentLoc();
 			Loc targetLoc = outpost.getTargetLoc();
 			
 			if (targetLoc == null)
-				targetLoc = new Loc(currentLoc);
+				targetLoc = currentLoc;
+			
+	    	// Tactical adjustment
+    		if (outpostsToAdjust.contains(new Integer(outpost.getSimIndex())))
+    			targetLoc = new Loc(homeCell);
+    		else
+    			targetLoc = new Loc(targetLoc);
 			
     		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
     		
