@@ -190,8 +190,8 @@ public class Board {
 		}
 	}
 	
-	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
-		if (simOutpostList.size() != Consts.numPlayers)
+	public void update(ArrayList<ArrayList<Loc>> outpostList) {
+		if (outpostList.size() != Consts.numPlayers)
 			System.err.println("Attempting to update board with wrong size list of player outposts");
 		
 		ticks++;
@@ -207,9 +207,7 @@ public class Board {
 			outposts.get(id).clear();
 			playerSummaries.get(id).reset();
 			
-			for (Pair pair : simOutpostList.get(id)) {
-				Loc loc = new Loc(pair.x, pair.y);
-				simFlip(loc);
+			for (Loc loc : outpostList.get(id)) {
 				cells[loc.x][loc.y].incNumOutposts(id);
 				outposts.get(id).add(loc);
 			}
@@ -248,7 +246,26 @@ public class Board {
 						playerSummaries.get(id).waterCells += 1;
 				}
 			}
+		}		
+	}
+	
+	public void updateFromSim(ArrayList<ArrayList<Pair>> simOutpostList) {
+		if (simOutpostList.size() != Consts.numPlayers)
+			System.err.println("Attempting to update board with wrong size list of player outposts");
+		
+		ArrayList<ArrayList<Loc>> outpostList = new ArrayList<ArrayList<Loc>>();
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			outpostList.add(new ArrayList<Loc>());
+			
+			for (Pair pair : simOutpostList.get(id)) {
+				Loc loc = new Loc(pair.x, pair.y);
+				simFlip(loc);
+				outpostList.get(id).add(loc);
+			}
 		}
+		
+		update(outpostList);
 	}
 	
 	public int getTicksRemaining() {

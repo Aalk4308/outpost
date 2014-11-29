@@ -150,7 +150,7 @@ public class Player extends outpost.sim.Player {
     	}
     	
     	// Update the board object
-    	board.update(simOutpostList);
+    	board.updateFromSim(simOutpostList);
     	    	
     	// Assign and run strategies on each outpost; use updated to indicate whether a strategy has been run on an outpost
     	for (Outpost outpost : outposts)
@@ -200,6 +200,32 @@ public class Player extends outpost.sim.Player {
     	Strategy getResourcesFill = new GetResources();
     	getResourcesFill.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
+    	
+    	// Adjust moves to avoid fruitless, suicidal moves
+    	// First, construct a new board as if we played all our moves
+    	//Board newBoard = new Board(board);
+    	/*
+    	for (Outpost outpost : outposts) {
+			Loc currentLoc = outpost.getCurrentLoc();
+			Loc targetLoc = outpost.getTargetLoc();
+			
+			if (targetLoc == null)
+				targetLoc = new Loc(currentLoc);
+			
+    		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
+    		
+    		if (path == null || path.size() == 0 || path.size() == 1) {
+    			outpost.setExpectedLoc(new Loc(currentLoc));
+    			board.simFlip(currentLoc);
+    			moves.add(new movePair(outpost.getSimIndex(), new Pair(currentLoc.x, currentLoc.y)));
+    		} else {
+    			outpost.setExpectedLoc(new Loc(path.get(1)));
+    			Loc expectedLoc = path.get(1);
+    			board.simFlip(expectedLoc);
+    			moves.add(new movePair(outpost.getSimIndex(), new Pair(expectedLoc.x, expectedLoc.y)));
+    		}
+    	}
+    	*/
     	
     	/*
     	// Run diagonal strategy
