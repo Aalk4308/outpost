@@ -10,11 +10,22 @@ public class AttackEnemy extends outpost.group3.Strategy{
 		for (int i = 0; i < outposts.size(); i++) {
 			Outpost outpost = outposts.get(i);
 			if (outpost.getTargetLoc() == null) {
+				
+				
+				
 				if (i % (Consts.numPlayers + 2) == 0)
-					outpost.setTargetLoc(new Loc(Board.dimension - 1, Board.dimension - 1));
+					outpost.setTargetLoc(board.nearestLand(new Loc(Board.dimension/2, Board.dimension/2)));
 				else if (i % (Consts.numPlayers +2) == 1)
-					outpost.setTargetLoc(new Loc(Board.dimension - 1, Board.dimension - 2));
-				else if (i % (Consts.numPlayers +2) == 2)
+					outpost.setTargetLoc(board.nearestLand(new Loc(Board.dimension/2-1, Board.dimension/2-1)));
+				
+				if ((i % (Consts.numPlayers + 2) == 0) && (outpost.getCurrentLoc()==board.nearestLand(new Loc(Board.dimension/2, Board.dimension/2))))
+					outpost.setTargetLoc(board.nearestLand(new Loc(Board.dimension - 1, Board.dimension - 1)));
+				else if ((i % (Consts.numPlayers +2) == 1) && (outpost.getCurrentLoc()==board.nearestLand(new Loc(Board.dimension/2-1, Board.dimension/2-1))))
+					outpost.setTargetLoc(board.nearestLand(new Loc(Board.dimension - 2, Board.dimension - 2)));
+				
+				
+				
+				if (i % (Consts.numPlayers +2) == 2)
 					outpost.setTargetLoc(new Loc(Board.dimension - 1, 2));
 				else if (i % (Consts.numPlayers + 2) == 3)
 					outpost.setTargetLoc(new Loc(Board.dimension - 1, 1));
