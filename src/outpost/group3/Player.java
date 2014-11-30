@@ -186,7 +186,7 @@ public class Player extends outpost.sim.Player {
         markStrategyDone(outpostsForStrategy);
     	
     	// Run attack Enemy strategy
-    	targetNum = 3;
+    	targetNum = 6;
     	outpostsForStrategy = new ArrayList<Outpost>();
     	assignStrategy(outpostsForStrategy, "attackEnemy", targetNum);
     	Strategy attackEnemy = new AttackEnemy();
