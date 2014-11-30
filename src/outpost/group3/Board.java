@@ -190,8 +190,8 @@ public class Board {
 		}
 	}
 	
-	public void update(ArrayList<ArrayList<Pair>> simOutpostList) {
-		if (simOutpostList.size() != Consts.numPlayers)
+	public void update(ArrayList<ArrayList<Loc>> outpostList) {
+		if (outpostList.size() != Consts.numPlayers)
 			System.err.println("Attempting to update board with wrong size list of player outposts");
 		
 		ticks++;
@@ -207,9 +207,7 @@ public class Board {
 			outposts.get(id).clear();
 			playerSummaries.get(id).reset();
 			
-			for (Pair pair : simOutpostList.get(id)) {
-				Loc loc = new Loc(pair.x, pair.y);
-				simFlip(loc);
+			for (Loc loc : outpostList.get(id)) {
 				cells[loc.x][loc.y].incNumOutposts(id);
 				outposts.get(id).add(loc);
 			}
@@ -224,9 +222,9 @@ public class Board {
 				for (int id = 0; id < Consts.numPlayers; id++) {
 					for (Loc loc : outposts.get(id)) {
 						double d = Loc.mDistance(x, y, loc);
-						if (d < r && d == cell.getOwnerDistance() && id != cell.getOwnerId()) {
+						if (d <= r && d == cell.getOwnerDistance() && id != cell.getOwnerId()) {
 							cell.setDisputed();
-						} else if (d < r && d < cell.getOwnerDistance()) {
+						} else if (d <= r && d < cell.getOwnerDistance()) {
 							cell.setOwned(id, d);
 						}
 					}
@@ -248,7 +246,59 @@ public class Board {
 						playerSummaries.get(id).waterCells += 1;
 				}
 			}
+		}		
+	}
+	
+	public void updateFromSim(ArrayList<ArrayList<Pair>> simOutpostList) {
+		if (simOutpostList.size() != Consts.numPlayers)
+			System.err.println("Attempting to update board with wrong size list of player outposts");
+		
+		ArrayList<ArrayList<Loc>> outpostList = new ArrayList<ArrayList<Loc>>();
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			outpostList.add(new ArrayList<Loc>());
+			
+			for (Pair pair : simOutpostList.get(id)) {
+				Loc loc = new Loc(pair.x, pair.y);
+				simFlip(loc);
+				outpostList.get(id).add(loc);
+			}
 		}
+		
+		update(outpostList);
+	}
+	
+	// Returns indexes of outposts that would be disbanded on this board for the given player id
+	public ArrayList<Integer> outpostsToDisband(int id) {
+		ArrayList<Integer> outpostList = new ArrayList<Integer>();
+		
+		Loc home = getHomeCell(id);
+		LinkedList<Loc> queue = new LinkedList<Loc>();
+		boolean[][] visited = new boolean[dimension][dimension];
+		
+		queue.add(home);
+		visited[home.x][home.y] = true;
+		
+		while (!queue.isEmpty()) {
+			Loc loc = queue.poll();
+			ArrayList<Loc> neighbors = getNearbyLocs(loc.x, loc.y, 1);
+			
+			for (Loc neighbor : neighbors) {
+				if (!visited[neighbor.x][neighbor.y] && cells[neighbor.x][neighbor.y].isPassableFor(id)) {
+					queue.add(neighbor);
+					visited[neighbor.x][neighbor.y] = true;
+				}
+			}
+		}
+		
+		for (int i = 0; i < outposts.get(id).size(); i++) {
+			Loc loc = outposts.get(id).get(i);
+			
+			if (!visited[loc.x][loc.y])
+				outpostList.add(new Integer(i));
+		}
+		
+		return outpostList;
 	}
 	
 	public int getTicksRemaining() {
@@ -382,9 +432,22 @@ public class Board {
 		return outposts.get(playerId);
 	}
 
-        public ArrayList<Loc> theirOutposts(int id){
-                return outposts.get(id);
-        }
+	public ArrayList<Loc> theirOutposts(int id) {
+		return outposts.get(id);
+	}
+	
+	public ArrayList<ArrayList<Loc>> allOutposts() {
+		ArrayList<ArrayList<Loc>> allOutposts = new ArrayList<ArrayList<Loc>>();
+		
+		for (int id = 0; id < Consts.numPlayers; id++) {
+			allOutposts.add(new ArrayList<Loc>());
+			
+			for (int j = 0; j < outposts.get(id).size(); j++)
+				allOutposts.get(id).add(new Loc(outposts.get(id).get(j)));
+		}
+		
+		return allOutposts;
+	}
 	
 	public boolean cellHasOutpost(int x, int y) {
 		return cells[x][y].hasOutpost();
