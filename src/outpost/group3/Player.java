@@ -71,7 +71,7 @@ public class Player extends outpost.sim.Player {
     		return;
     	
     	for (Outpost outpost : outposts) {
-    		if (!outpost.isUpdated() && outpostsForStrategy.size() < max) {
+    		if (!outpost.isUpdated() && outpostsForStrategy.size() < max && !outpost.getStrategy().equals("consumer")) {
     			outpostsForStrategy.add(outpost);
     			outpost.setStrategy(strategyName);
 				outpost.setTargetLoc(null);
@@ -250,7 +250,7 @@ public class Player extends outpost.sim.Player {
     	markStrategyDone(outpostsForStrategy);
     	
     	// Run consumer
-        targetNum = 12;		// Just working with one consumer
+        targetNum = 15;		// Just working with one consumer
         outpostsForStrategy = new ArrayList<Outpost>();
         assignStrategy(outpostsForStrategy, "consumer", targetNum);
         Strategy ConsumerStrategy = new ConsumerStrategy(r);
