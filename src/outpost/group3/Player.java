@@ -100,7 +100,7 @@ public class Player extends outpost.sim.Player {
     	}
     }
     
-    // type 0 = stay the same; type 1 = move up; type 2 = move left; type 3 = move up/left whichever is greater 
+    // type 0 = stay the same; type 1 = move left; type 2 = move up; type 3 = move up/left whichever is greater; type 4 = move right; type 5 = move down; 
     private Board getBoardAfterOpponentMove(Board board, int type) {
     	Board boardAfterOpponentMoves = new Board(board);
     	
@@ -119,6 +119,10 @@ public class Player extends outpost.sim.Player {
     				loc.x = Math.max(0, loc.x - 1);
     			else if (type == 2 || (type == 3 && loc.x <= loc.y))
     				loc.y = Math.max(0, loc.y - 1);
+    			else if (type == 4)
+    				loc.x = Math.min(size - 1, loc.x + 1);
+    			else if (type == 5)
+    				loc.y = Math.min(size - 1, loc.y + 1);
     		}
     	}
     	
@@ -155,10 +159,10 @@ public class Player extends outpost.sim.Player {
     	
     	boardAfterOurMoves.update(allOutposts);
     	
-    	// Consider four cases of how enemies might move: stay the same, move up, move left, or move whichever is more distant
+    	// Consider six cases of how enemies might move: stay the same, move up, move left, or move whichever is more distant, move down, move right
     	ArrayList<Integer> disbandedOutposts = new ArrayList<Integer>();	// List of simIds of outposts that will be disbanded.  May contain duplicates, but that will not matter
     	
-    	for (int i = 0; i < 4; i++) {
+    	for (int i = 0; i < 6; i++) {
     		Board boardAfterOpponentMove = getBoardAfterOpponentMove(boardAfterOurMoves, i);
         	disbandedOutposts.addAll(boardAfterOpponentMove.outpostsToDisband(id));
     	}
@@ -187,7 +191,7 @@ public class Player extends outpost.sim.Player {
     	// For each of our outposts in the list, find and update it in our persistent list, or add it if not
     	for (Outpost outpost : outposts)
     		outpost.setUpdated(false);
-    	
+    	    	
     	for (int i = 0; i < simOutpostList.get(id).size(); i++) {
     		Pair pair = simOutpostList.get(id).get(i);
 			Loc loc = new Loc(pair.x, pair.y);
@@ -287,19 +291,22 @@ public class Player extends outpost.sim.Player {
     	Loc homeCell = board.getHomeCell(id);
     	
     	for (Outpost outpost : outposts) {
-			Loc currentLoc = outpost.getCurrentLoc();
+			Loc currentLoc = new Loc(outpost.getCurrentLoc());
 			Loc targetLoc = outpost.getTargetLoc();
 			
 			if (targetLoc == null)
-				targetLoc = currentLoc;
+				targetLoc = new Loc(currentLoc);
+			
+			ArrayList<Loc> path;
 			
 	    	// Tactical adjustment
-    		if (outpostsToAdjust.contains(new Integer(outpost.getSimIndex())))
+    		if (outpostsToAdjust.contains(new Integer(outpost.getSimIndex()))) {
     			targetLoc = new Loc(homeCell);
-    		else
+    			path = board.findPathPassable(currentLoc, targetLoc);
+    		} else {
     			targetLoc = new Loc(targetLoc);
-			
-    		ArrayList<Loc> path = board.findPath(currentLoc, targetLoc);
+        		path = board.findPath(currentLoc, targetLoc);
+    		}
     		
     		if (path == null || path.size() == 0 || path.size() == 1) {
     			outpost.setExpectedLoc(new Loc(currentLoc));

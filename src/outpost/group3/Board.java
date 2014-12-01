@@ -46,6 +46,7 @@ public class Board {
 	private double avgSupportableOutpostsPerCellWithSupport;
 	private Cell[][] cells;
 	private boolean landGrid[][];
+	private boolean passableGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
 	private ArrayList<PlayerSummary> playerSummaries;
 	
@@ -74,6 +75,7 @@ public class Board {
 		ticks = 0;
 		cells = new Cell[dimension][dimension];
 		landGrid = new boolean[dimension][dimension];
+		passableGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
 		
@@ -171,6 +173,7 @@ public class Board {
 		avgSupportableOutpostsPerCellWithSupport = board.avgSupportableOutpostsPerCellWithSupport; 
 		cells = new Cell[dimension][dimension];
 		landGrid = board.landGrid;
+		passableGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
 		
@@ -237,6 +240,8 @@ public class Board {
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
 				Cell cell = cells[x][y];
+				passableGrid[x][y] = false;
+
 				if (cell.isOwned()) {
 					int id = cell.getOwnerId();
 					playerSummaries.get(id).totalCells += 1;
@@ -245,6 +250,9 @@ public class Board {
 					else
 						playerSummaries.get(id).waterCells += 1;
 				}
+				
+				if (!cell.isOwned() || (cell.isOwned() && cell.getOwnerId() == playerId))
+					passableGrid[x][y] = true;
 			}
 		}		
 	}
@@ -399,6 +407,11 @@ public class Board {
 	}
 	
 	public ArrayList<Loc> findPath(Loc start, Loc end) {
+		return jps.findPath(start, end);
+	}
+	
+	public ArrayList<Loc> findPathPassable(Loc start, Loc end) {
+		JPS jps = new JPS(passableGrid, dimension, dimension);
 		return jps.findPath(start, end);
 	}
 	
