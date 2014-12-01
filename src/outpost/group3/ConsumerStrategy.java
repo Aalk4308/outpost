@@ -172,11 +172,11 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
           || board.getCell(new Loc(spot.x, spot.y + i)).isWater()
           || board.getCell(new Loc(spot.x, spot.y - i)).isWater()){
           System.out.println("Building with " + i + " space for formation " + formationNum);
-          setFormationLocs(outposts,formationNum,board,i,false);
+          setFormationLocs(outposts,formationNum,"",board,i,false);
           break;
       }
       else if ( i == r-1)
-        setFormationLocs(outposts,formationNum,board,r,false);
+        setFormationLocs(outposts,formationNum,"",board,r,false);
     }
     //set the target locations
 
@@ -225,62 +225,57 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     }
     */
     //else{
+
       //Find closest enemy
+      String closest = "";
       for (int i = 0; i < 4; i ++){
         enemyOutposts = board.theirOutposts(i);
         if (enemyOutposts == board.ourOutposts())
           continue;
-        for (Loc outpost : enemyOutposts){
-          outpost.x++;
-          outpost.y++;
-          double tempDist = outpost.distance(consCenters.get(formationNum));
-          if (tempDist < enemyDist){
-            enemyDist = tempDist;
-            centerTarget = outpost;
+        for (Loc enemy : enemyOutposts){
+          for (Outpost outpost : outposts){
+            double tempDist = outpost.getCurrentLoc().distance(enemy);
+            if (tempDist < enemyDist){
+              enemyDist = tempDist;
+              centerTarget = enemy;
+              closest = (String) outpost.memory.get("role");
+            }
           }
         }
       }
 
-      //Determine which member of our ideal formation is closest to the target
-      String closest = "";
-      enemyDist = 100;
-      for (Outpost outpost : outposts){
-        double tempDist = outpost.getCurrentLoc().distance(centerTarget);
-        if (tempDist < enemyDist){
-          closest = (String) outpost.memory.get("role");
-          enemyDist = tempDist;
-        }
-      }
+
+      System.out.println("Ideally want to move " + closest + " towards enemy " + centerTarget);
 
       //Update expected positions for next turn and move the center of our formation
 
       //TODO: Check if the next move for any component (based on findPath)
       //is not in the direction we desire. If only one component moves in a "wrong" direction,
       //move all components in that direction.
-      int newCenterx = consCenters.get(formationNum).x;
-      int newCentery = consCenters.get(formationNum).y;
-      if(closest.equals("north")){
-        newCentery++;
-        updateExpectations(outposts,"y",1);
-      }
-      else if(closest.equals("south")){
-        newCentery--;
-        updateExpectations(outposts,"y",-1);
-      }
-      else if(closest.equals("east")){
-        newCenterx++;
-        updateExpectations(outposts,"x",1);
-      }
-      else if(closest.equals("west")){
-        newCenterx--;
-        updateExpectations(outposts,"x",-1);
-      }
+      //int newCenterx = consCenters.get(formationNum).x;
+      //int newCentery = consCenters.get(formationNum).y;
+      //if(closest.equals("north")){
+      //  newCentery++;
+      //  updateExpectations(outposts,"y",1);
+      //}
+      //else if(closest.equals("south")){
+      //  newCentery--;
+      //  updateExpectations(outposts,"y",-1);
+      //}
+      //else if(closest.equals("east")){
+      //  newCenterx++;
+      //  updateExpectations(outposts,"x",1);
+      //}
+      //else if(closest.equals("west")){
+      //  newCenterx--;
+      //  updateExpectations(outposts,"x",-1);
+      //}
 
       //Set new formation center
-      consCenters.set(formationNum,new Loc(newCenterx, newCentery));
-      System.out.println("Set center to " + consCenters.get(formationNum));
+      //consCenters.set(formationNum,new Loc(newCenterx, newCentery));
+      //System.out.println("Set center to " + consCenters.get(formationNum));
 
-      setFormationLocs(outposts,formationNum,board,r,false);
+      setFormationLocs(outposts,formationNum,closest,board,r,false);
 
       boolean stationary = false;
       int wrongMove = 0;
@@ -298,87 +293,32 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         if (path == null || path.size() == 0 || path.size() == 1) {
           loc.x = currentLoc.x;
           loc.y = currentLoc.y;
+          System.out.println("Issue with path for " + (String) outpost.memory.get("role"));
         } else {
           loc.x = path.get(1).x;
           loc.y = path.get(1).y;
         }
         //Check if next move would lead to any outposts in formation being stationary 
-        if (loc.equals(currentLoc))
+        if (loc.equals(currentLoc)){
           stationary = true;
+          System.out.println("Outpost " + (String) outpost.memory.get("role") + " would be stationary " );
+        }
         //Check if any outposts will move to unusual position
         else if (!loc.equals(outpost.memory.get("expectedSpot"))){
           wrongMove++;
           wrongOutpost = (String) outpost.memory.get("role");
+          System.out.println("Outpost " + wrongOutpost + " was going to move to " + loc + " but expected to move " + outpost.memory.get("expectedSpot"));
         }
       }
 
-      //If any outposts would be stationary or multiple outposts would make a wrong move, contract formation
-      if (stationary){
-        System.out.println("Reset formation");
-        consCenters.set(formationNum,oldCenter);
-        setFormationLocs(outposts,formationNum,board,r,true);
-      }
       //If one outpost makes "wrong" move, move in that direction
       //TODO: Fix bugs, yo
-      else if (wrongMove >= 1){
+      if (wrongMove >= 1){
         System.out.println("Wrong formation");
-        newCenterx = consCenters.get(formationNum).x;
-        newCentery = consCenters.get(formationNum).y;
-        //Undo move just made
-        if(closest.equals("north")){
-          newCentery--;
-          updateExpectations(outposts,"y",-1);
-        }
-        else if(closest.equals("south")){
-          newCentery++;
-          updateExpectations(outposts,"y",1);
-        }
-        else if(closest.equals("east")){
-          newCenterx--;
-          updateExpectations(outposts,"x",-1);
-        }
-        else if(closest.equals("west")){
-          newCenterx++;
-          updateExpectations(outposts,"x",1);
-        }
-
-        //Reset center to move in "wrong" direction
-        if(wrongOutpost.equals("north")){
-          newCentery++;
-          updateExpectations(outposts,"y",1);
-        }
-        else if(wrongOutpost.equals("south")){
-          newCentery--;
-          updateExpectations(outposts,"y",-1);
-        }
-        else if(wrongOutpost.equals("east")){
-          newCenterx++;
-          updateExpectations(outposts,"x",1);
-        }
-        else if(wrongOutpost.equals("west")){
-          newCenterx--;
-          updateExpectations(outposts,"x",-1);
-        }
-
-        //Set new formation center
-        consCenters.set(formationNum,new Loc(newCenterx, newCentery));
-        System.out.println("Set center to " + consCenters.get(formationNum));
 
         //Manually set each outpost to move in "wrong" direction
-        for (Outpost outpost : outposts){
-          if(wrongOutpost.equals("north")){
-            outpost.setTargetLoc(board.nearestLand(new Loc(outpost.getCurrentLoc().x,outpost.getCurrentLoc().y + 1)));
-          }
-          else if(wrongOutpost.equals("south")){
-            outpost.setTargetLoc(board.nearestLand(new Loc(outpost.getCurrentLoc().x,outpost.getCurrentLoc().y - 1)));
-          }
-          else if(wrongOutpost.equals("east")){
-            outpost.setTargetLoc(board.nearestLand(new Loc(outpost.getCurrentLoc().x + 1,outpost.getCurrentLoc().y)));
-          }
-          else if(wrongOutpost.equals("west")){
-            outpost.setTargetLoc(board.nearestLand(new Loc(outpost.getCurrentLoc().x - 1,outpost.getCurrentLoc().y)));
-          }
-        }
+        setFormationLocs(outposts,formationNum,wrongOutpost,board,r,true);
+
         stationary = false;
         //Check if things would be stationary again
         for (Outpost outpost : outposts) {
@@ -405,30 +345,74 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         //If any outposts would be stationary, contract formation
         if (stationary){
           System.out.println("Reset formation");
-          setFormationLocs(outposts,formationNum,board,r,stationary);
+          setFormationLocs(outposts,formationNum,"",board,r--,true);
         }
     
+      }
+      //If any outposts would be stationary or multiple outposts would make a wrong move, contract formation
+      else if (stationary){
+        System.out.println("Reset formation");
+        consCenters.set(formationNum,oldCenter);
+        setFormationLocs(outposts,formationNum,"",board,r--,true);
       }
     //}
       System.out.println("Final center is " + consCenters.get(formationNum));
   }
 
   //Given the center of a formation, assign the consumer outposts to their associated positions
-  private void setFormationLocs(ArrayList<Outpost> outposts, int formationNum , Board board, int space, boolean stationary){
-    Loc formationCenter = consCenters.get(formationNum);
+  private void setFormationLocs(ArrayList<Outpost> outposts, int formationNum, String direction , Board board, int dist, boolean stationary){
+    Loc oldCenter = consCenters.get(formationNum);
+    int space = 0;
     for (Outpost outpost : outposts){
-      if (stationary){
-        formationCenter = outpost.getCurrentLoc();
-        space = -1;
+      Loc center = outpost.getCurrentLoc();
+      if (stationary && states.get(formationNum) != State.BUILD){
+        //Contract
+        if(outpost.memory.get("role").equals("north")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x,center.y - 1)));
+        }
+        else if(outpost.memory.get("role").equals("south")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x,center.y + 1)));
+        }
+        else if(outpost.memory.get("role").equals("east")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x - 1,center.y)));
+        }
+        else if(outpost.memory.get("role").equals("west")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x + 1,center.y)));
+        }
       }
-      if(outpost.memory.get("role").equals("north"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y + space)));
-      else if(outpost.memory.get("role").equals("south"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y - space)));
-      else if(outpost.memory.get("role").equals("east"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x + space,formationCenter.y)));
-      else if(outpost.memory.get("role").equals("west"))
-        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x - space,formationCenter.y)));
+      else if (states.get(formationNum) == State.BUILD){
+        if(outpost.memory.get("role").equals("north")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(oldCenter.x,oldCenter.y + dist)));
+        }
+        else if(outpost.memory.get("role").equals("south")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(oldCenter.x,oldCenter.y - dist)));
+        }
+        else if(outpost.memory.get("role").equals("east")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(oldCenter.x + dist,oldCenter.y)));
+        }
+        else if(outpost.memory.get("role").equals("west")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(oldCenter.x - dist,oldCenter.y)));
+        }
+      }
+      else{
+        if(direction.equals("north")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x,center.y + 1)));
+          consCenters.set(formationNum, new Loc(oldCenter.x,oldCenter.y + 1));
+        }
+        else if(direction.equals("south")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x,center.y - 1)));
+          consCenters.set(formationNum, new Loc(oldCenter.x,oldCenter.y - 1));
+        }
+        else if(direction.equals("east")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x + 1,center.y)));
+          consCenters.set(formationNum, new Loc(oldCenter.x + 1,oldCenter.y));
+        }
+        else if(direction.equals("west")){
+          outpost.setTargetLoc(board.nearestLand(new Loc(center.x - 1,center.y)));
+          consCenters.set(formationNum, new Loc(oldCenter.x - 1,oldCenter.y));
+        }
+      }
+      outpost.memory.put("expectedSpot",outpost.getTargetLoc());
       System.out.println("Oupost " + outpost.memory.get("role") + " is moving to " + outpost.getTargetLoc());
     }
     
