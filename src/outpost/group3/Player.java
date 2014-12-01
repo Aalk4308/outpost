@@ -250,7 +250,7 @@ public class Player extends outpost.sim.Player {
     	markStrategyDone(outpostsForStrategy);
     	
     	// Run consumer
-        targetNum = 4;		// Just working with one consumer
+        targetNum = 12;		// Just working with one consumer
         outpostsForStrategy = new ArrayList<Outpost>();
         assignStrategy(outpostsForStrategy, "consumer", targetNum);
         Strategy ConsumerStrategy = new ConsumerStrategy(r);
@@ -300,7 +300,7 @@ public class Player extends outpost.sim.Player {
 			ArrayList<Loc> path;
 			
 	    	// Tactical adjustment
-    		if (outpostsToAdjust.contains(new Integer(outpost.getSimIndex()))) {
+    		if (!outpost.memory.containsKey("role") && outpostsToAdjust.contains(new Integer(outpost.getSimIndex()))) {
     			targetLoc = new Loc(homeCell);
     			path = board.findPathPassable(currentLoc, targetLoc);
     		} else {
