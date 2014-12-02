@@ -253,7 +253,7 @@ public class Player extends outpost.sim.Player {
         targetNum = 15;		// Just working with one consumer
         outpostsForStrategy = new ArrayList<Outpost>();
         assignStrategy(outpostsForStrategy, "consumer", targetNum);
-        Strategy ConsumerStrategy = new ConsumerStrategy(r);
+        Strategy ConsumerStrategy = new ConsumerStrategy();
         ConsumerStrategy.run(board, outpostsForStrategy);
         markStrategyDone(outpostsForStrategy);
     	
