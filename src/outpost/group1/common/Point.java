@@ -14,6 +14,13 @@ public class Point {
         this.y = y;
     }
 
+    public Point(Point p) {
+        this(p.x, p.y);
+    }
+
+    public Point(outpost.sim.Pair p) {
+        this(p.x, p.y);
+    }
     public Point(outpost.sim.Point p) {
         this(p.x, p.y);
     }
@@ -96,6 +103,16 @@ public class Point {
         return best;
     }
 
+
+    public Point unit() {
+        if (this.x == 0) {
+            return new Point(this.x, 1);
+        } else if (this.y == 0) {
+            return new Point(1, this.y);
+        } else {
+            return new Point(0, 0);
+        }
+    }
     public Point add(int dx, int dy) {
         return new Point(this.x + dx, this.y + dy);
     }

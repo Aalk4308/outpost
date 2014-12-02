@@ -82,29 +82,69 @@ public class Player extends outpost.sim.Player {
     	Location followLocation =null;
     	
     	
-    	// Target water resources when there are less than 3 Outposts.
-    	Random rand = new Random();
-    	int ran = rand.nextInt(2);
-
-    	int applyExpansion = rand.nextInt(7);
+    	// Do initial defensive moves. Move first one to closest water.
+    	// Then have next three form defensive shell around the base, at (0, 2r),
+    	// (2r, 2r) and (2r, 0). This should set it up so the shell regenerates even if
+    	// it gets destroyed later on.
+    	/*
+    	if (myOutPosts.size() < 5) {
+    		returnlist = Strategy.initialDefense(myOutPosts, openShore, r, targets, targetHistory);
+    		return returnlist;
+    	}
     	
-    	if (applyExpansion == 5 && count < 980 ) {
-    		returnlist = Strategy.angularExpansion(myOutPosts, shorePoints, r);	
-    	} else if ((ran == 0 || applyExpansion == 3)&& count < 980) {
+    	if (myOutPosts.size() > 15 ) {
+    		returnlist = Strategy.defenseHome(myOutPosts, shorePoints, id, targets, openShore, targetHistory);
+    		return returnlist;
+    	}
+    	*/
+    	// Target water resources when there are less than 3 Outposts.
+    	if (myOutPosts.size() < 7) {
     		// Lenient attack to waters
     		returnlist = Strategy.attackWater(myOutPosts, shorePoints);
-    		
+    		//returnlist = Strategy.angularExpansion(myOutPosts, shorePoints, r);
+    		return returnlist;
+    	}
+    	flag = true;
+    	Random rand = new Random();
+    	int ran = rand.nextInt(7);
+    	if (myOutPosts.size() > 7 ){
+    		flag = false;
+    	}
+    	
+    	Pair myHome = PlayerUtil.getStartPair(this.id, 100);
+    	int [] move = PlayerUtil.getPossibleAwayEdgeMoves(id);
+    	
+    	int x = myHome.x+move[0]+move[0];
+    	int y = myHome.y+move[1]+move[1];
+    	
+     	
+    	
+    	if (ran == 0 ) {
+    		// Lenient attack to waters
+    		returnlist = Strategy.attackWater(myOutPosts, shorePoints);
+    		//returnlist = Strategy.angularExpansion(myOutPosts, shorePoints, r);
     	} 
-    	else if (ran == 1 && count < 980 ) {
+    	else {
     		// Strict attack to waters with less space in between
     		// Samara's water attack 
-    		returnlist = Strategy.targetWaterResources(myOutPosts, targets, openShore, targetHistory);	
-    		//returnlist = Strategy.protectHome(myOutPosts, shorePoints, r);
-    	} else {
-    		 // Lenient attack to waters
-    	    	returnlist = Strategy.attackWater(myOutPosts, shorePoints);	
+    		ran = rand.nextInt(18);
+    		if (ran == 1) {
+        		// Lenient attack to waters
+        		returnlist = Strategy.attackWater(myOutPosts, shorePoints);
+        	} else if (myOutPosts.size() > 5 ) {
+    			returnlist = Strategy.defenseHome(myOutPosts, shorePoints, id, targets, openShore, targetHistory);
+        		
+    		} else {
+    			
+    			if (myOutPosts.size() %2 == 0) {
+    				returnlist = Strategy.targetWaterResourcesDouble(myOutPosts, targets, openShore, targetHistory);	
+        			
+    			} else {
+    			
+    				returnlist = Strategy.targetWaterResources(myOutPosts, targets, openShore, targetHistory);	
+    			}
+    		}	//returnlist = Strategy.protectHome(myOutPosts, shorePoints, r);
     	}
-
     	/*
 		for (movePair mp : returnlist) {
 			mp.printmovePair();

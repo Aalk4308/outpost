@@ -6,76 +6,58 @@ public class UtilityMaxStrategy implements Strategy {
 
     ArrayList<Post> posts;
     ArrayList<ArrayList<Post>> otherPlayerPosts;
-    List<GridSquare> bestSquares;
-
-    public int seasonCount;
-
-    public UtilityMaxStrategy() {
-      seasonCount = 0;
-    }
-
-    public int delete(ArrayList<Post> posts, GridSquare[][] board) {
-        Post nearestPost = (Post) Player.baseLoc.nearestLocation(posts);
-        int del = posts.indexOf(nearestPost);
-        if (del < 0) del = Player.random.nextInt(posts.size());
-
-        return del;
-    }
+    ArrayList<GridSquare> bestSquares;
+    ArrayList<GridSquare> postTargets;
+    int turn = 0;
 
     public ArrayList<Post> move(ArrayList<ArrayList<Post>> otherPlayerPosts, ArrayList<Post> posts, boolean newSeason) {
+        if (postTargets == null) {
+          postTargets = new ArrayList<GridSquare>();
+        }
+        turn += 1;
         this.posts = posts;
         this.otherPlayerPosts = otherPlayerPosts;
 
+
         ArrayList<Post> newPosts = new ArrayList<Post>();
-        MaxWaterHeuristic waterHeuristic = new MaxWaterHeuristic(Player.board);
-        DistanceWeighingHeuristic heuristic = new DistanceWeighingHeuristic(waterHeuristic, Player.SIZE / 4 + seasonCount * 3);
-
-        HashSet<Integer> takenSquareIndices = new HashSet<Integer>();
-
-        if (newSeason) {
-            seasonCount++;
-        }
-
-        bestSquares = heuristic.getTopSquares(posts.size());
-        System.out.println(bestSquares);
+        BoardHeuristic waterHeuristic = new MaxWaterHeuristic(Player.board);
+        BoardHeuristic heuristic = new DistanceWeighingHeuristic(waterHeuristic);
 
         for (int i = 0; i < posts.size(); i++) {
             Post p = posts.get(i);
-
             Post newPost = p;
+            int squareIndex = p.id;
+            ArrayList<Location> path;
 
-            Post emergency = emergencyMove(p);
-            if (emergency != null) {
-                newPost = emergency;
-            }
-            else {
-                for (int targetIndex = 0; targetIndex < bestSquares.size(); targetIndex++) {
-                    if (takenSquareIndices.contains(targetIndex)) continue;
-
-                    GridSquare targetSquare = bestSquares.get(targetIndex);
-                    double targetScore = heuristic.weightScore(waterHeuristic.score(targetSquare, true), targetSquare);
-
-                    GridSquare currentSquare = Player.board.gridSquareWithLocation(newPost);
-                    double currentScore = heuristic.weightScore(waterHeuristic.score(currentSquare, true), currentSquare);
-
-                    System.out.printf("index: %d |||| current: %s %f |||| target: %s %f\n", targetIndex, currentSquare, currentScore, targetSquare, targetScore);
-
-                    if (targetScore > currentScore) {
-                        newPost.target = targetSquare;
-
-                        takenSquareIndices.add(targetIndex);
-                        Player.board.addTargetSquareOwnership(newPost.target);
-                        ArrayList<Location> path = p.shortestPathToLocation(newPost.target);
-
-                        int nextLocationIndex = (path.size() > 1)? 1 : 0;
-                        newPost.x = path.get(nextLocationIndex).x;
-                        newPost.y = path.get(nextLocationIndex).y;
-
-                        break;
-                    }
+            // if we already have a target:
+            if (squareIndex < postTargets.size()) {
+              // if we are at our target, move away from our own posts that were there first
+              if (p.x == postTargets.get(squareIndex).x && p.y == postTargets.get(squareIndex).y) {
+                for (Post neighbor : posts) {
+                  double dist = p.distanceTo(neighbor);
+                  if (dist < (double) Player.parameters.outpostRadius && p.id > neighbor.id) {
+                    // pick a new target
+                    ArrayList<GridSquare> bestWaterSquares = Player.board.getBestWaterSquaresForPost(p);
+                    postTargets.set(squareIndex, bestWaterSquares.get(2 * squareIndex));
+                  }
                 }
+              }
+
+              // move towards target
+              path = p.shortestPathToLocation(postTargets.get(squareIndex));
             }
 
+            // if we do not have a target, grab a new one and move toward it
+            else {
+              ArrayList<GridSquare> bestWaterSquares = Player.board.getBestWaterSquaresForPost(p);
+              GridSquare target = bestWaterSquares.get(squareIndex);
+              postTargets.add(target);
+              path = p.shortestPathToLocation(target);
+            }
+
+            int nextLocationIndex = (path.size() > 1) ? 1 : 0;
+            newPost.x = path.get(nextLocationIndex).x;
+            newPost.y = path.get(nextLocationIndex).y;
             newPosts.add(newPost);
         }
 
@@ -86,7 +68,7 @@ public class UtilityMaxStrategy implements Strategy {
         for (ArrayList<Post> posts : otherPlayerPosts) {
             for (Post opponentPost : posts) {
                 if (p.isLocationUnderInfluence(opponentPost)) {
-                    System.out.printf("EMERGENCY!!!! %s vs. %s\n", p, opponentPost);
+                    System.out.printf("EMERGENCY!!!! %s vsvsvsvsvsvs %s\n", p, opponentPost);
                     return p.moveMaximizingDistanceFrom(opponentPost);
                 }
             }

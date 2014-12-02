@@ -3,30 +3,39 @@ package outpost.group1.common;
 import java.util.*;
 
 public class Board {
-    public static enum TileType {
-        Land,
-        Water
-    };
-
     public static final int BOARD_SIZE = 100;
-    TileType[][] tiles = new TileType[BOARD_SIZE][BOARD_SIZE];
+    Tile[][] tiles = new Tile[BOARD_SIZE][BOARD_SIZE];
 
-    public Board(outpost.sim.Point[] points) {
+    public final int radius;
+    public final int L;
+    public final int W;
+    public Board(outpost.sim.Point[] points, int r, int L, int W) {
         for (outpost.sim.Point p : points) {
             if (p.water) {
-                tiles[p.y][p.x] = TileType.Water;
-                water.add(new Point(p));
+                Tile new_tile = Tile.Water(p.x, p.y, this);
+                tiles[p.y][p.x] = new_tile;
+                water.add(new_tile);
 
             } else {
-                tiles[p.y][p.x] = TileType.Land;
-                land.add(new Point(p));
+                Tile new_tile = Tile.Land(p.x, p.y, this);
+                tiles[p.y][p.x] = new_tile;
+                land.add(new_tile);
             }
         }
+
+        this.radius = r;
         this.lakes = identifyLakes();
+        this.L = L;
+        this.W = W;
     }
 
-    List<Point> water = new ArrayList<Point>();
-    List<Point> land  = new ArrayList<Point>();
+
+    public List<Tile> getAllLandTiles() {
+        return land;
+    }
+
+    List<Tile> water = new ArrayList<Tile>();
+    List<Tile> land  = new ArrayList<Tile>();
 
     List<Rectangle> lakes;
 
@@ -37,10 +46,10 @@ public class Board {
         // call lakeFromPointSet on each disjoint item
         Set<Point> used = new HashSet<Point>();
         List<Rectangle> lakes = new ArrayList<Rectangle>();
-        for (Point p : water) {
+        for (Tile p : water) {
             if (used.contains(p)) continue;
 
-            Set<Point> lake = getLakePointsAdjacentTo(p);
+            Set<Point> lake = getLakePointsAdjacentTo(p.asPoint());
             used.addAll(lake);
 
             lakes.add(lakeFromPointSet(lake));
@@ -64,7 +73,7 @@ public class Board {
                 List<Point> neighbors = l.neighbors();
 
                 for (Point neighbor : neighbors) {
-                    if (!lake.contains(neighbor) && isWater(neighbor)) {
+                    if (!lake.contains(neighbor) && this.get(neighbor).isWater()) {
                         added = true;
 
                         lake.add(neighbor);
@@ -101,44 +110,39 @@ public class Board {
         return new Rectangle(top, bottom, left, right);
     }
 
-    public TileType get(int row, int col) {
+    public Tile getOffset(Tile t, int dx, int dy) {
+        return this.get(t.asPoint().add(dx, dy));
+    }
+    public Tile get(Point p) {
+        return this.get(p.getY(), p.getX());
+    }
+    public Tile get(int row, int col) {
+        if (!Rectangle.BOARD_RECTANGLE.contains(new Point(row, col))) {
+            return Tile.Invalid(row, col, this);
+        }
+
         return tiles[row][col];
     }
-    public TileType get(Point p) {
-        return tiles[p.getY()][p.getX()];
-    }
 
-    public boolean isLand(int row, int col) {
-        return tiles[row][col] == TileType.Land;
-    }
-    public boolean isLand(Point p) {
-        if (!Rectangle.BOARD_RECTANGLE.contains(p)) {
-            return false;
-        }
-        return tiles[p.getY()][p.getX()] == TileType.Land;
-    }
-
-    public boolean isWater(int row, int col) {
-        return tiles[row][col] == TileType.Water;
-    }
-    public boolean isWater(Point p) {
-        if (!Rectangle.BOARD_RECTANGLE.contains(p)) {
-            return false;
-        }
-        return tiles[p.getY()][p.getX()] == TileType.Water;
-    }
-
-    public List<Point> getLandNeighbors(Point p) {
-        List<Point> neighbors = p.neighbors();
-        List<Point> land = new ArrayList<Point>();
-        for (Point n : neighbors) {
-            if (isLand(n)) {
-                land.add(n);
+    public String valueString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                int val = (int)Math.floor(this.get(i,j).unitsSupported());
+                
+                String text;
+                if (val == 0) {
+                    text = " ";
+                } else if (val < 10) {
+                    text = String.format("%d", val);
+                } else {
+                    text = String.format("\033[1;32m%d\033[0m", val);
+                }
+                sb.append(text);
             }
+            sb.append('\n');
         }
-        return land;
-    }
 
-    int unit_land_cost;
-    int unit_water_cost;
+        return sb.toString();
+    }
 };

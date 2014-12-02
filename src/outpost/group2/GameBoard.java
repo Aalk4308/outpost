@@ -66,6 +66,9 @@ public class GameBoard {
 					if (!cell.hasWater && cell.owner != id) {
 						currentCell.landValue++;
 					}
+					if (cell.hasWater && cell.owner != id) {
+						currentCell.waterValue++;
+					}
 				}
 				currentCell.landValue = (int) (landMultiplier * 100 * ((double) currentCell.landValue/(double) (4*influenceDistance*influenceDistance)));
 				for (int k = 0; k < BOARD_SIZE; k++) {
@@ -125,60 +128,82 @@ public class GameBoard {
 	public double calculateOffensiveScore(Outpost movingPost, Pair testPos, int playerId, int influenceDist,ArrayList<Pair> intruderList) {
 		//return 5*grid[testPos.x][testPos.y].landValue;
 		double dis = influenceDist * 2;
-		double inf_range = 3*2*influenceDist;
+		//double inf_range = 3*2*influenceDist;
+		double inf_range = 3*influenceDist;
 		double value = 0;
-		ArrayList<GridCell> influencedCells = getInfluencedCells(testPos, influenceDist);
+		double max_value = 0;
+	/*	ArrayList<GridCell> influencedCells = getInfluencedCells(testPos, influenceDist);
 		for (GridCell cell : influencedCells) {
 			if (cell.owner == GridCell.NO_OWNER) {
 				value++;
 			}
-		}
+		}*/
 		//System.out.println("size of intruder: " + intruderList.size());
 		for(int i = 0; i < intruderList.size(); i++)
 		{
+			value = 0;
+	//		System.out.println("dis: " + distance(testPos, intruderList.get(i)));
+			
 			if (distance(intruderList.get(i), testPos) < inf_range) {
+				//System.out.println("dis in range: " + distance(testPos, intruderList.get(i)));
+
+				//System.out.println("testPos-x: " + testPos.x + ", y: " + testPos.y);
 				//System.out.println("intruder x: " + intruderList.get(i).x + ", y: " + intruderList.get(i).y);
 
-				if (grid[intruderList.get(i).x][ intruderList.get(i).y].owner == GridCell.NO_OWNER) {
+				//if (grid[intruderList.get(i).x][ intruderList.get(i).y].owner == GridCell.NO_OWNER) {
+				if (grid[testPos.x][testPos.y].owner == GridCell.NO_OWNER) {
+
 					//System.out.println("cell x: " + testPos.x + ", y: " + testPos.y + ", non_owner");
-					value += 5 + inf_range - distance(testPos, intruderList.get(i));
-					return value;
+					value = 60 - distance(testPos, intruderList.get(i));
+					//System.out.println("way 60");
+					//return value;
 						//System.out.println("neutral res becomes mine!");
 					} 
-						else
-						if (grid[intruderList.get(i).x][ intruderList.get(i).y].owner != playerId) {
+						//else if (grid[intruderList.get(i).x][ intruderList.get(i).y].owner != playerId) {
+				else if (grid[testPos.x][ testPos.y].owner != playerId) {
+					//System.out.println("way 120");
 							//System.out.println("not owned by our ourself");
-							if(playerId==0 && (intruderList.get(i).x < dis || intruderList.get(i).y < dis ))
+							if(playerId == 0 && (intruderList.get(i).x < dis || intruderList.get(i).y < dis ))
 							{
-								value += 35 + inf_range - distance(testPos, intruderList.get(i));
-								return value;
+								value = 120 - distance(testPos, intruderList.get(i));
+								//return value;
 							}
-							if(playerId==1 && (intruderList.get(i).x > BOARD_SIZE-dis || intruderList.get(i).y < dis ))
+							else if(playerId == 1 && (intruderList.get(i).x > BOARD_SIZE-dis || intruderList.get(i).y < dis ))
 									{
 								//System.out.println(" booundary");
 
-								value += 35 + inf_range - distance(testPos, intruderList.get(i));
-								return value;
+								value = 120 - distance(testPos, intruderList.get(i));
+								//return value;
 									}
-							if(playerId==3 && (intruderList.get(i).x < dis || intruderList.get(i).y > BOARD_SIZE-dis ))
+							else if(playerId == 3 && (intruderList.get(i).x < dis || intruderList.get(i).y > BOARD_SIZE-dis ))
 									{
-								value += 35 + inf_range - distance(testPos, intruderList.get(i));
-								return value;
+								value = 120 - distance(testPos, intruderList.get(i));
+								//return value;
 									}
-							if(playerId==2 && (intruderList.get(i).x > BOARD_SIZE -dis || intruderList.get(i).y > BOARD_SIZE-dis ))
+							else if(playerId == 2 && (intruderList.get(i).x > BOARD_SIZE -dis || intruderList.get(i).y > BOARD_SIZE-dis ))
 									{
-										value += 35 + inf_range - distance(testPos, intruderList.get(i));
-										return value;
+										value = 120 - distance(testPos, intruderList.get(i));
+										//return value;
 									}
-							//System.out.println("not booundary");
+							//System.out.println("not boundary");
 
-							value += 25 + inf_range - distance(testPos, intruderList.get(i));
-							return value;
+							else 
+								{value = 100 - distance(testPos, intruderList.get(i));
+								//System.out.println("way 100");
+								}
+							//System.out.println("!!!!value: " + value);
+							if(value > max_value)
+								{
+								//System.out.println("large than max value!!!!!!!");
+								max_value = value;
+								}
+								
+							//return value;
 					}
 				}
 			}
 		
-		return value;
+		return max_value;
 	}
 	
 	public Resource getResources(int id) {

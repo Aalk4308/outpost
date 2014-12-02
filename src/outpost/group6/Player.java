@@ -31,6 +31,7 @@ public class Player extends outpost.sim.Player {
     int[] my = {0, 1, 1};
     int mSize = 3;
 
+    ArrayList<Cell> homeCells;
     ArrayList<Cell> allCells;
     ArrayList<Post> ourPosts;
     Pair[] region = new Pair[2];
@@ -302,7 +303,25 @@ public class Player extends outpost.sim.Player {
     void refreshTargets(Pair a, Pair b) {
         
         ArrayList<Post> ourPostsCopy = new ArrayList<Post>();
-        ourPostsCopy.addAll(ourPosts);
+        //ourPostsCopy.addAll(ourPosts);
+        //Make copy of all outposts except home base protecting outposts
+        //And assign home cells to certain outposts manually
+        int outpostCount = 0;
+        int homeCellCount = 0;
+        for(Post p: ourPosts)
+        {
+        	if((outpostCount >9 && outpostCount < 13))
+        	{
+        		p.target= homeCells.get(homeCellCount).location;
+        		p.targetSet=true;
+        		homeCellCount++;
+        	}
+        	else
+        	{
+        		ourPostsCopy.add(p);
+        	}
+        	outpostCount++;
+        }
 
         for (Post post : ourPostsCopy) {
             post.targetSet = false;
@@ -397,8 +416,14 @@ public class Player extends outpost.sim.Player {
 
     void initCells() {
         allCells = new ArrayList<Cell>();
+        homeCells = new ArrayList<Cell>(3);
         for (int i = 0; i < grid.length; i++) {
             allCells.add(new Cell(PointtoPair(grid[i])));
+            
+          //Add home cells
+            Cell c = new Cell(PointtoPair(grid[i]));
+            if(manDistance(c.location, home[my_id]) <=1)
+            	homeCells.add(c);
         }
     }
 

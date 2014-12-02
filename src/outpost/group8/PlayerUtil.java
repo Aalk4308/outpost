@@ -25,7 +25,10 @@ public class PlayerUtil {
 		return twoDGrid;
 	}
 
-	public static ArrayList<Pair> getTargetPoints(Pair start, int size) {
+	public static ArrayList<Pair> getTargetPoints(
+			Pair start,
+			int size,
+			Point[] grid) {
 		ArrayList<Pair> pairList = new ArrayList<Pair>();
 		for (int i = 0; i < 4; i++) {
 			Pair tmp0 = new Pair(start);
@@ -42,7 +45,7 @@ public class PlayerUtil {
 			if (i == 3) {
 				tmp = new Pair(tmp0.x, tmp0.y + 1);
 			}
-			if (tmp.x >= 0 && tmp.y >= 0 && tmp.x < size && tmp.y <size) {
+			if (tmp.x >= 0 && tmp.y >= 0 && tmp.x < size && tmp.y <size && grid[tmp.x * size + tmp.y].water) {
 				pairList.add(tmp);
 			}
 
@@ -239,7 +242,10 @@ public class PlayerUtil {
 		
 		return false;
 	}
-	
+	/**
+	 * To Create defense we need to know where to target our next outposts
+	 * keep adding this recursively to target point to generate more points
+	 */
 	public static int[] getPossibleAwayEdgeMoves (int id){
 		
 		if (id == 0) {
@@ -254,7 +260,7 @@ public class PlayerUtil {
 			int [] posMoves  = {-1, -1};
 			return posMoves;
 		}
-		if (id == 0) {
+		if (id == 3) {
 			int [] posMoves  = {1,-1};
 			return posMoves;
 		}

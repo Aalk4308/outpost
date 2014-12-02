@@ -23,6 +23,11 @@ public class Player extends outpost.sim.Player {
 		super(id);
 
 		knownID = id;
+
+    // this.strategy = new UtilityMaxStrategy();
+		// this.strategy = new SabotageStrategy(id);
+    this.strategy = new AdvancedStrategy();
+
 		this.turn = 0;
 	}
 
@@ -30,18 +35,22 @@ public class Player extends outpost.sim.Player {
 
 	public int delete(ArrayList<ArrayList<Pair>> outpostList, Point[] grid) {
 		ArrayList<Post> posts = Conversions.postsFromPairs(outpostList.get(this.id));
-		GridSquare[][] board = Conversions.gridSquaresFromPoints(grid);
 
-		return strategy.delete(posts, board);
+		Post nearestPost = (Post) this.baseLoc.nearestLocation(posts);
+		int del = posts.indexOf(nearestPost);
+
+		if (del < 0) del = random.nextInt(outpostList.get(id).size());
+
+    //this.strategy.deleteOutpost(del);
+
+		return del;
 	}
 
 	public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> outpostList, Point[] grid, int r, int L, int W, int T) {
 		// initialize the goods if necessary
 		if (Player.parameters == null) {
 			baseLoc = new Location(outpostList.get(this.id).get(0));
-			Player.parameters = new GameParameters(r, L, W, T, SIZE);
-
-			this.strategy = new StagePlanningStrategy();
+			Player.parameters = new GameParameters(r, L, W, T, SIZE, this.id, baseLoc);
 		}
 
 		// create the static known board

@@ -158,6 +158,13 @@ public class CalConvexHull {
 		
 		hullSet(A, B, rightSet, myConvexHull);
 		hullSet(B, A, leftSet, myConvexHull);	
+		
+		/*System.out.println("---------print convexhull---------");
+		for(int i = 0; i < myConvexHull.size(); i++)
+		{
+			System.out.println("x: " + myConvexHull.get(i).x + ", y: " + myConvexHull.get(i).y);
+		}*/
+		
 		return myConvexHull;
 	}
 	
