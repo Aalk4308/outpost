@@ -50,11 +50,11 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   ConsumerStrategy() {}
 
   public void run(Board board, ArrayList<Outpost> outposts) {
-    System.out.println("Given a total of " + outposts.size() + " outposts to play with " );
+    //System.out.println("Given a total of " + outposts.size() + " outposts to play with " );
 
 
     if (outposts.size() >= 5){
-      System.out.println("At start of run method, we have " + consumers.size() + " consumers");
+      //System.out.println("At start of run method, we have " + consumers.size() + " consumers");
       for (Consumer consumer : consumers) {
         ArrayList<Outpost> originalMembers = (ArrayList<Outpost>) consumer.members.clone();
         for (Outpost member : originalMembers) {
@@ -70,7 +70,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
           availableOutposts.add(outpost);
       }
 
-      System.out.println("We have " + availableOutposts.size() + " available outposts");
+      //System.out.println("We have " + availableOutposts.size() + " available outposts");
 
       // Fill up existing consumers that have too few members, if possible
       for (Consumer consumer : consumers) {
@@ -82,13 +82,13 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       while(availableOutposts.size() > 0){
         Consumer consumer = new Consumer();
         while (consumer.members.size() >= 0 && consumer.members.size() < 5 && availableOutposts.size() > 0){
-          System.out.println("Removing outpost from available list");
+          //System.out.println("Removing outpost from available list");
           consumer.members.add(availableOutposts.remove(0));
         }
         consumers.add(consumer);
       }
 
-      System.out.println("After forming consumers, we have " + consumers.size() + " and " + availableOutposts.size() + " extra outposts");
+      //System.out.println("After forming consumers, we have " + consumers.size() + " and " + availableOutposts.size() + " extra outposts");
 
       // For any consumer that still doesn't have enough members, destroy it
       ArrayList<Consumer> builtThisTurn = (ArrayList<Consumer>)consumers.clone();
@@ -100,7 +100,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         }
       }
 
-      System.out.println("After destroying some, we have " + consumers.size());
+      //System.out.println("After destroying some, we have " + consumers.size());
 
       //Run strategy for each consumer
       for (Consumer consumer : consumers) {
@@ -114,7 +114,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   }
 
   private void runConsumer(Consumer consumer, Board board){
-    System.out.println("Running consumer with state " + consumer.state + ", center " + consumer.myCenter + ", and target " + consumer.targetCenter);
+    //System.out.println("Running consumer with state " + consumer.state + ", center " + consumer.myCenter + ", and target " + consumer.targetCenter);
 
     //Check if any outposts haven't beenassigned a role
     ArrayList<String> filledRoles = new ArrayList<String>();
@@ -154,7 +154,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         avg_x /= consumer.members.size();
         avg_y /= consumer.members.size();
         consumer.myCenter = board.nearestLand(new Loc((int)avg_x,(int)avg_y));
-        System.out.println("Average location is " + consumer.myCenter);
+        //System.out.println("Average location is " + consumer.myCenter);
         /*
            for (int i = 1; i < size - 1; i++){
            for (int j = 1; j < size - 1; j++){
@@ -183,7 +183,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
 
         //Set state to BUILD and fall through
         consumer.state = State.BUILD;
-        System.out.println("Just set consumer state to " + consumer.state);
+        //System.out.println("Just set consumer state to " + consumer.state);
 
       case BUILD: 
         buildMove(consumer,board);
