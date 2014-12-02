@@ -16,6 +16,7 @@ public class Global {
 		for (int i = 0 ; i < 100 ; i++) {
 			for (int j = 0 ; j <100 ; j++) {
 				grid[i][j] = new Location(g[i*100+j]);
+				grid[i][j].water = g[i*100+j].water;
 			}
 		}
 		return grid;

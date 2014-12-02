@@ -34,6 +34,7 @@ public class Player extends outpost.sim.Player {
 	public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> outpostPairs, Point[] gridin, int influenceDist, int L, int W, int T){
     	long startTime = System.currentTimeMillis();
 		currentTick++;
+		boolean endGame = T - currentTick < 200;
 		ArrayList<movePair> ourNextMoves = new ArrayList<movePair>();   
 		ArrayList<Pair> moveSpaces = new ArrayList<Pair>();
 		ArrayList<ArrayList<Outpost>> outposts = new ArrayList<ArrayList<Outpost>>();
@@ -57,6 +58,10 @@ public class Player extends outpost.sim.Player {
 	    	int waterMultiplier = calculateResourceMultiplier(outposts.get(id).size(), W, ourResources.water);
 	    	System.out.println("[GROUP2][LOG] Water multiplier: " + waterMultiplier);
 	    	int landMultiplier = calculateResourceMultiplier(outposts.get(id).size(), L, ourResources.land);
+	    	if (endGame) {
+	    		landMultiplier += 1;
+	    		landMultiplier *= 5;
+	    	}
 	    	System.out.println("[GROUP2][LOG] Land multiplier: " + landMultiplier);
 	    	ArrayList<Pair> pairsToCheck = new ArrayList<Pair>();
 	    	for (Pair outpost : outpostPairs.get(id)) {
@@ -83,9 +88,15 @@ public class Player extends outpost.sim.Player {
     			ArrayList<Pair> myConvexHull = cal.getConvexHull(outpostPairs.get(this.id), this.id, BOARD_SIZE);
     			ArrayList<Pair> intruderList = cal.findIntruder(myConvexHull, outpostPairs, this.id);
     			
-    			int offensiveVal = 5*(int) /*((double) currentTick/ (double) T) **/ board.calculateOffensiveScore(outpost, testPos, id, influenceDist,intruderList);
+    		/*	System.out.println("--------print intruder--------");
+    			for(int i = 0; i < intruderList.size(); i++)
+    			{
+    				System.out.println("x: " + intruderList.get(i).x + ", y: " + intruderList.get(i).y);
+    			}
+    			*/
+    			int offensiveVal = (int) /*((double) currentTick/ (double) T) **/ board.calculateOffensiveScore(outpost, testPos, id, influenceDist,intruderList);
     			double currentScore = waterResourceVal + landResourceVal + defensiveVal +  offensiveVal;
-    			System.out.printf("Point %d, %d water val: %f, land val: %f, defensive val: %d, offensive val: %d\n", testPos.x, testPos.y, waterResourceVal, landResourceVal, defensiveVal,offensiveVal);
+    			//System.out.printf("Point %d, %d water val: %f, land val: %f, defensive val: %d, offensive val: %d\n", testPos.x, testPos.y, waterResourceVal, landResourceVal, defensiveVal,offensiveVal);
     			if (currentScore > bestScore && !moveSpaces.contains(bestPair)) {
     				bestScore = currentScore;
     				bestPair = testPos;

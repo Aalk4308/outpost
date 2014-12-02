@@ -8,7 +8,6 @@ import outpost.sim.movePair;
 
 public class Post extends Location {
 	public int id;
-	public Location target;
 
 	public Post(Location loc, int id) {
 		super(loc.x, loc.y);
@@ -25,19 +24,13 @@ public class Post extends Location {
 		this.id = id;
 	}
 
-	public Post(Post p) {
-			super(p.x, p.y);
-			this.id = p.id;
+	public Post(Post post) {
+		super(post.x, post.y);
+		this.id = post.id;
 	}
 
 	public Post copy() {
-			return new Post(this);
-	}
-
-	public void update(Post p) {
-			this.x = p.x;
-			this.y = p.y;
-			this.id = p.id;
+		return new Post(x, y, id);
 	}
 
 	public String toString() {
@@ -130,19 +123,27 @@ public class Post extends Location {
   }
 
 	public Post moveMinimizingDistanceFrom(Location loc) {
-		Post nearestPost = null;
-		double minDist = distanceTo(loc);
+		return movesMinimizingDistanceFrom(loc).get(0);
+	}
+
+	public ArrayList<Post> movesMinimizingDistanceFrom(Location loc) {
+		ArrayList<Post> nearestPosts = new ArrayList<Post>();
+		nearestPosts.add(this);
+
 		ArrayList<Post> possibleMoves = adjacentPosts();
 
 		for (Post possiblePost : possibleMoves) {
-			double dist = distance(loc, possiblePost);
-			if (dist < minDist) {
-				minDist = dist;
-				nearestPost = possiblePost;
+			double curDist = possiblePost.distanceTo(loc);
+			double bestDist = nearestPosts.get(0).distanceTo(loc);
+			if (curDist == bestDist) {
+				nearestPosts.add(possiblePost);
+			} else if (curDist < bestDist) {
+				nearestPosts.clear();
+				nearestPosts.add(possiblePost);
 			}
 		}
 
-		return nearestPost;
+		return nearestPosts;
 	}
 
 	public Post moveMaximizingDistanceFrom(Location loc) {
@@ -151,7 +152,7 @@ public class Post extends Location {
 		ArrayList<Post> possibleMoves = adjacentPosts();
 
 		for (Post possiblePost : possibleMoves) {
-			double dist = distance(loc, possiblePost);
+			double dist = distanceTo(loc, possiblePost);
 			if (dist > maxDist) {
 				maxDist = dist;
 				furthestPost = possiblePost;

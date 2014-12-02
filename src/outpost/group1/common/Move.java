@@ -6,6 +6,9 @@ public class Move {
     Point start;
     Point end;
 
+    public Point getStart() { return start; };
+    public Point getEnd() { return end; };
+
     public Move(Point start) {
         this(start, start);
     }
