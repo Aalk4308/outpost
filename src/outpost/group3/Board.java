@@ -251,7 +251,7 @@ public class Board {
 						playerSummaries.get(id).waterCells += 1;
 				}
 				
-				if (!cell.isOwned() || (cell.isOwned() && cell.getOwnerId() == playerId))
+				if (cell.isLand() && (!cell.isOwned() || (cell.isOwned() && cell.getOwnerId() == playerId)))
 					passableGrid[x][y] = true;
 			}
 		}		

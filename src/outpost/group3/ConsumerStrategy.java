@@ -111,9 +111,6 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       for (Outpost outpost : outposts)
         outpost.setStrategy(null);
     }
-    for (Outpost outpost : outposts){
-      System.out.println("Strategy for outpost " + outpost.getId() + " is " + outpost.getStrategy());
-    }
   }
 
   private void runConsumer(Consumer consumer, Board board){
