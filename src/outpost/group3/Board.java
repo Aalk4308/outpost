@@ -46,6 +46,7 @@ public class Board {
 	private double avgSupportableOutpostsPerCellWithSupport;
 	private Cell[][] cells;
 	private boolean landGrid[][];
+	private boolean landGridUL[][];
 	private boolean passableGrid[][];
 	private ArrayList<ArrayList<Loc>> outposts;
 	private ArrayList<PlayerSummary> playerSummaries;
@@ -75,6 +76,7 @@ public class Board {
 		ticks = 0;
 		cells = new Cell[dimension][dimension];
 		landGrid = new boolean[dimension][dimension];
+		landGridUL = new boolean[dimension][dimension];
 		passableGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
@@ -103,6 +105,9 @@ public class Board {
 		for (int x = 0; x < dimension; x++) {
 			for (int y = 0; y < dimension; y++) {
 				Cell cell = cells[x][y];
+				
+				if (x < dimension - 1 && y < dimension - 1)
+					landGridUL[x][y] = cells[x][y].isLand() && cells[x+1][y].isLand() && cells[x][y+1].isLand() && cells[x+1][y+1].isLand();
 				
 				cell.setNearestLand(findNearestLand(x, y));
 				cell.setNearestWater(findNearestWater(x, y));
@@ -173,6 +178,7 @@ public class Board {
 		avgSupportableOutpostsPerCellWithSupport = board.avgSupportableOutpostsPerCellWithSupport; 
 		cells = new Cell[dimension][dimension];
 		landGrid = board.landGrid;
+		landGridUL = board.landGridUL;
 		passableGrid = new boolean[dimension][dimension];
 		outposts = new ArrayList<ArrayList<Loc>>();
 		playerSummaries = new ArrayList<PlayerSummary>();
@@ -407,6 +413,15 @@ public class Board {
 	}
 	
 	public ArrayList<Loc> findPath(Loc start, Loc end) {
+		return jps.findPath(start, end);
+	}
+
+	public ArrayList<Loc> findPathUL(int xStart, int yStart, int xEnd, int yEnd) {
+		return findPathUL(new Loc(xStart, yStart), new Loc(xEnd, yEnd));
+	}
+	
+	public ArrayList<Loc> findPathUL(Loc start, Loc end) {
+		JPS jps = new JPS(landGridUL, dimension, dimension);
 		return jps.findPath(start, end);
 	}
 	

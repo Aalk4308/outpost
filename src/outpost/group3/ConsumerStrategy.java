@@ -10,12 +10,13 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   enum State { ASSIGN, BUILD, ATTACK };
   static boolean unassigned = true;
 
+  final int NUM = 4;
+  
   //These are the 4 outposts composing a consumer
-  final int NORTH = 0;
-  final int EAST = 1;
-  final int SOUTH = 2;
-  final int WEST = 3;
-  final int CENTER = 4;
+  final int UL = 0;
+  final int UR = 1;
+  final int BL = 2;
+  final int BR = 3;
 
   private class Consumer {
     public ArrayList<Outpost> members;
@@ -74,14 +75,14 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
 
       // Fill up existing consumers that have too few members, if possible
       for (Consumer consumer : consumers) {
-        while (consumer.members.size() > 0 && consumer.members.size() < 5 && availableOutposts.size() > 0)
+        while (consumer.members.size() > 0 && consumer.members.size() < NUM && availableOutposts.size() > 0)
           consumer.members.add(availableOutposts.remove(availableOutposts.size() - 1));
       }
 
       // Assign remaining outposts to new consumers and add fully formed consumers to global list
       while(availableOutposts.size() > 0){
         Consumer consumer = new Consumer();
-        while (consumer.members.size() >= 0 && consumer.members.size() < 5 && availableOutposts.size() > 0){
+        while (consumer.members.size() >= 0 && consumer.members.size() < NUM && availableOutposts.size() > 0){
           //System.out.println("Removing outpost from available list");
           consumer.members.add(availableOutposts.remove(0));
         }
@@ -93,7 +94,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       // For any consumer that still doesn't have enough members, destroy it
       ArrayList<Consumer> builtThisTurn = (ArrayList<Consumer>)consumers.clone();
       for (Consumer consumer : builtThisTurn) {
-        if (consumer.members.size() < 5) {
+        if (consumer.members.size() < NUM) {
           for (Outpost outpost : consumer.members)
             outpost.setStrategy(null);
           consumers.remove(consumer);   // Be careful about doing this inside a loop
@@ -122,7 +123,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       if (outpost.memory.containsKey("role"))
         filledRoles.add((String)outpost.memory.get("role"));
     }
-    if (filledRoles.size() < 5){
+    if (filledRoles.size() < NUM){
       //Go back to original assignment point to reform the formation
       consumer.state = State.ASSIGN;
       for (Outpost outpost : consumer.members){
@@ -175,11 +176,10 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
          */
 
         //Assign each outpost its position
-        consumer.members.get(NORTH).memory.put("role","north");
-        consumer.members.get(SOUTH).memory.put("role","south");
-        consumer.members.get(WEST).memory.put("role","west");
-        consumer.members.get(EAST).memory.put("role","east");
-        consumer.members.get(CENTER).memory.put("role","center");
+        consumer.members.get(UL).memory.put("role","UL");
+        consumer.members.get(BL).memory.put("role","BL");
+        consumer.members.get(BR).memory.put("role","BR");
+        consumer.members.get(UR).memory.put("role","UR");
 
         //Set state to BUILD and fall through
         consumer.state = State.BUILD;
@@ -211,7 +211,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         numInPosition++;
     }
 
-    if(numInPosition == 5){
+    if(numInPosition == NUM){
       //We have fully formed a consumer, let's attack!
       consumer.state = State.ATTACK;
       for (Outpost outpost : consumer.members)
@@ -236,7 +236,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
 
   //Can we rebuild without water being in the way?
   private boolean formationIsClear(Consumer consumer,Board board){
-    Loc c = consumer.myCenter;
+    /*Loc c = consumer.myCenter;
     if (board.getCell(c).isWater())
       return false;
     c.x++;
@@ -253,6 +253,20 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     if (board.getCell(c).isWater())
       return false;
     c.y++;
+    */
+	Loc c = consumer.myCenter;
+    if (board.getCell(c).isWater())
+      return false;
+    c.x++;
+    if (board.getCell(c).isWater())
+      return false;
+    c.y++;
+    if (board.getCell(c).isWater())
+      return false;
+    c.x--;
+    if (board.getCell(c).isWater())
+      return false;
+    c.y--;
     return true;
   }
 
@@ -282,26 +296,33 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     }
     else{
       //Find closest enemy
+      ArrayList<Loc> path;
+      
       for (int i = 0; i < 4; i ++){
         enemyOutposts = board.theirOutposts(i);
         if (enemyOutposts == board.ourOutposts())
           continue;
         for (Loc outpost : enemyOutposts){
-          double tempDist = outpost.distance(consumer.myCenter);
+          double tempDist = Loc.mDistance(outpost, consumer.myCenter);
           boolean targeted = false;
           for (Consumer c : consumers){
             if (c.targetCenter != null && c.targetCenter.equals(outpost))
               targeted = true;
           }
           if (tempDist < enemyDist && !targeted){
-            enemyDist = tempDist;
-            consumer.targetCenter = outpost;
+            path = board.findPathUL(new Loc(consumer.myCenter), new Loc(outpost));
+            
+            if (path != null && path.size() > 1) {
+            	enemyDist = tempDist;
+            	consumer.targetCenter = outpost;
+            }
           }
         }
       }
       //System.out.println("Formation " + formationNum + " going for enemy " + targets.get(formationNum));
 
-      ArrayList<Loc> path = board.findPath(consumer.myCenter, consumer.targetCenter);
+      path = board.findPathUL(consumer.myCenter, consumer.targetCenter);
+      
       Loc newCenter = new Loc();
       if (path == null || path.size() == 0 || path.size() == 1) {
         newCenter.x = consumer.myCenter.x;
@@ -323,7 +344,7 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
   private void setFormationLocs(Consumer consumer, Board board){
     Loc formationCenter = consumer.myCenter;
     for (Outpost outpost : consumer.members){
-      if(outpost.memory.get("role").equals("north"))
+      /*if(outpost.memory.get("role").equals("north"))
         outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y + 1)));
       else if(outpost.memory.get("role").equals("south"))
         outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y - 1)));
@@ -333,6 +354,17 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x - 1,formationCenter.y)));
       else if(outpost.memory.get("role").equals("center"))
         outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y)));
+      */
+    	
+      if(outpost.memory.get("role").equals("UL"))
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y)));
+      else if(outpost.memory.get("role").equals("UR"))
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x + 1,formationCenter.y)));
+      else if(outpost.memory.get("role").equals("BL"))
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x,formationCenter.y + 1)));
+      else if(outpost.memory.get("role").equals("BR"))
+        outpost.setTargetLoc(board.nearestLand(new Loc(formationCenter.x + 1,formationCenter.y + 1)));
+    	
       outpost.memory.put("expectedSpot",outpost.getTargetLoc());
       //System.out.println("Outpost " + (String) outpost.memory.get("role") + " expects to be at " + outpost.getTargetLoc());
     }
