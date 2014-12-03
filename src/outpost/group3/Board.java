@@ -314,6 +314,36 @@ public class Board {
 		
 		return outpostList;
 	}
+
+	// Returns locations of outposts of a player id adjacent to a given location
+	public ArrayList<Loc> adjacentOutposts(int id, Loc start) {
+		ArrayList<Loc> outpostList = new ArrayList<Loc>();
+		
+		if (!cells[start.x][start.y].hasOutpost(id))
+			return outpostList;
+		
+		LinkedList<Loc> queue = new LinkedList<Loc>();
+		boolean[][] visited = new boolean[dimension][dimension];
+		
+		queue.add(start);
+		visited[start.x][start.y] = true;
+		outpostList.add(start);
+		
+		while (!queue.isEmpty()) {
+			Loc loc = queue.poll();
+			ArrayList<Loc> neighbors = getNearbyLocs(loc.x, loc.y, 1);
+			
+			for (Loc neighbor : neighbors) {
+				if (!visited[neighbor.x][neighbor.y] && cells[neighbor.x][neighbor.y].hasOutpost(id)) {
+					queue.add(neighbor);
+					visited[neighbor.x][neighbor.y] = true;
+					outpostList.add(loc);
+				}
+			}
+		}
+
+		return outpostList;
+	}
 	
 	public int getTicksRemaining() {
 		return T - ticks;

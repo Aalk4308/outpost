@@ -221,10 +221,16 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       ArrayList<Loc> path;
       
       for (int i = 0; i < 4; i ++){
+    	if (i == board.playerId)
+    		continue;
+    	
         enemyOutposts = board.theirOutposts(i);
-        if (enemyOutposts == board.ourOutposts())
-          continue;
+        
         for (Loc outpost : enemyOutposts){
+          // Quick hack to avoid targeting enemy outposts that are too "strong", i.e., have 3+ adjacent
+          if (board.adjacentOutposts(i, outpost).size() >= 3)
+        	  continue;
+        	
           double tempDist = Loc.mDistance(outpost, consumer.myCenter);
           boolean targeted = false;
           for (Consumer c : consumers){
