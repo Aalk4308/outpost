@@ -173,9 +173,22 @@ public class Player extends outpost.sim.Player {
 	public void init() {}
 
 	public int delete(ArrayList<ArrayList<Pair>> king_outpostlist, Point[] gridin) {
-		//System.out.printf("haha, we are trying to delete a outpost for player %d\n", this.id);
-		int del = random.nextInt(king_outpostlist.get(id).size());
-		return del;
+		int index = 0;
+		int maxDistance = 0;
+		
+		for (int i = 0; i < king_outpostlist.get(id).size(); i++) {
+			Pair pair = king_outpostlist.get(id).get(i);
+			Loc loc = new Loc(pair.x, pair.y);
+			
+			int distance = board.getCell(loc).getPathDistanceToHome(id);
+			
+			if (distance > maxDistance) {
+				maxDistance = distance;
+				index = i;
+			}
+		}
+		
+		return index;
 	}
 
     public ArrayList<movePair> move(ArrayList<ArrayList<Pair>> simOutpostList, Point[] simGrid, int r, int L, int W, int T) {
