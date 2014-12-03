@@ -20,12 +20,14 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     public Loc targetCenter;
     public Loc myCenter;
     public State state;
-
+    public int area;
+    
     Consumer(){
       members = new ArrayList<Outpost>();
       targetCenter = null;
       myCenter = null;
       state = State.ASSIGN;
+      area = 0;
     }
   }
 
@@ -71,6 +73,16 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
         while (consumer.members.size() >= 0 && consumer.members.size() < SIZE && availableOutposts.size() > 0){
           consumer.members.add(availableOutposts.remove(0));
         }
+        
+        int[] area = new int[2];
+        for (Consumer existing : consumers)
+        	area[existing.area]++;
+        
+        if (area[0] < area[1])
+        	consumer.area = 0;
+        else
+        	consumer.area = 1;
+        
         consumers.add(consumer);
       }
 
@@ -193,10 +205,29 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
     return true;
   }
 
+  private Consumer nearestConsumerToHomeCell(int id, Board board) {
+	  Consumer nearest = null;
+	  int minDist = Integer.MAX_VALUE;
+	  
+	  for (Consumer consumer : consumers) {
+		  if (consumer.myCenter == null)
+			  continue;
+		  
+		  int dist = board.getCell(consumer.myCenter).getPathDistanceToHome(id);
+		  
+		  if (dist < minDist) {
+			  minDist = dist;
+			  nearest = consumer;
+		  }
+	  }
+	  
+	  return nearest;
+  }
+  
   //Set the next move for our consumer formation to attack the closest enemy
   private void attackMove(Consumer consumer, Board board){
 
-    double enemyDist = 100;
+    int enemyDist = Integer.MAX_VALUE;
 
     ArrayList<Loc> enemyOutposts = new ArrayList<Loc>();
     ArrayList<Outpost> outOfFormation = new ArrayList<Outpost>();
@@ -217,38 +248,52 @@ public class ConsumerStrategy extends outpost.group3.Strategy {
       buildMove(consumer,board);
     }
     else{
-      //Find closest enemy
+      // Pick an enemy to target
       ArrayList<Loc> path;
       
       for (int i = 0; i < 4; i ++){
     	if (i == board.playerId)
     		continue;
     	
-        enemyOutposts = board.theirOutposts(i);
+    	enemyOutposts = board.theirOutposts(i);
         
-        for (Loc outpost : enemyOutposts){
-          // Quick hack to avoid targeting enemy outposts that are too "strong", i.e., have 3+ adjacent
-          if (board.adjacentOutposts(i, outpost).size() >= 3)
-        	  continue;
-        	
-          double tempDist = Loc.mDistance(outpost, consumer.myCenter);
-          boolean targeted = false;
-          for (Consumer c : consumers){
-            if (c.targetCenter != null && c.targetCenter.equals(outpost))
-              targeted = true;
-          }
-          if (tempDist < enemyDist && !targeted){
-            path = board.findPathUL(new Loc(consumer.myCenter), new Loc(outpost));
-            
-            if (path != null && path.size() > 1) {
-            	enemyDist = tempDist;
-            	consumer.targetCenter = outpost;
-            }
-          }
-        }
+    	if (enemyOutposts.size() <= 1 && consumer == nearestConsumerToHomeCell(i, board)) {
+    		consumer.targetCenter = board.getHomeKillCell(i);
+    	} else {
+	        for (Loc outpost : enemyOutposts){
+	          if (((consumer.area == 0 && outpost.x >= outpost.y) || (consumer.area == 1 && outpost.x < outpost.y)) && outpost.x + outpost.y > board.dimension / 2) 
+	        	  continue;
+	          
+	          // Quick hack to avoid targeting enemy outposts that are too "strong", i.e., have 3+ adjacent
+	          if (board.adjacentOutposts(i, outpost).size() >= 3)
+	        	  continue;
+	        
+	          //int tempDist = board.getCell(outpost).getPathDistanceToHome(board.playerId) - board.getCell(outpost).getPathDistanceToHome(i);
+	          int tempDist = board.getCell(outpost).getPathDistanceToHome(board.playerId);
+	          path = board.findPathUL(new Loc(consumer.myCenter), new Loc(outpost));
+	          
+	          if (path == null || path.size() <= 1)
+	        	  continue;
+	          
+	          tempDist += path.size() - 1;
+	          
+	          boolean targeted = false;
+	          for (Consumer c : consumers){
+	            if (c.targetCenter != null && c.targetCenter.equals(outpost))
+	              targeted = true;
+	          }
+	          if (tempDist < enemyDist && !targeted){
+	            enemyDist = tempDist;
+	            consumer.targetCenter = outpost;
+	          }
+	        }
+    	}
       }
       //System.out.println("Formation " + formationNum + " going for enemy " + targets.get(formationNum));
-
+      
+      if (consumer.targetCenter == null)
+    	  consumer.targetCenter = new Loc(consumer.myCenter);
+      
       path = board.findPathUL(consumer.myCenter, consumer.targetCenter);
       
       Loc newCenter = new Loc();
