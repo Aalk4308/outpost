@@ -250,13 +250,14 @@ public class Player extends outpost.sim.Player {
     	markStrategyDone(outpostsForStrategy);
     	
     	// Run consumer
-        targetNum = 15;		// Just working with one consumer
+        targetNum = 12;		// Just working with one consumer
         outpostsForStrategy = new ArrayList<Outpost>();
         assignStrategy(outpostsForStrategy, "consumer", targetNum);
         Strategy ConsumerStrategy = new ConsumerStrategy();
         ConsumerStrategy.run(board, outpostsForStrategy);
         markStrategyDone(outpostsForStrategy);
     	
+        /*
     	// Run attack Enemy strategy
     	targetNum = 3;
     	outpostsForStrategy = new ArrayList<Outpost>();
@@ -264,7 +265,8 @@ public class Player extends outpost.sim.Player {
     	Strategy attackEnemy = new AttackEnemy();
     	attackEnemy.run(board, outpostsForStrategy);
     	markStrategyDone(outpostsForStrategy);
-    	
+    	*/
+        
         // Set any remaining unassigned to gatherers (no stealing)
         targetNum = outposts.size();
        	outpostsForStrategy = new ArrayList<Outpost>();
