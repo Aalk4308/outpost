@@ -369,6 +369,22 @@ public class Board {
 		return loc;
 	}
 	
+	public Loc getHomeKillCell(int id) {
+		Loc loc = null;
+		
+		if (id == 0)
+			loc = new Loc(1, 1);
+		else if (id == 1)
+			loc = new Loc(dimension - 2, 1);
+		else if (id == 2)
+			loc = new Loc(dimension - 2, dimension - 2);
+		else if (id == 3)
+			loc = new Loc(1, dimension - 2);
+			
+		simFlip(loc);
+		return loc;
+	}
+	
 	/* Inefficient algorithm to find nearest land to a cell, but we only call it once per cell and then cache the results */
 	private Loc findNearestLand(int xStart, int yStart) {
 		Loc nearestLand = null;
